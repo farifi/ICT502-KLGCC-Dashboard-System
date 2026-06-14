@@ -1,0 +1,95 @@
+.table {
+  padding: 0;
+  overflow: visible; /* Changed from hidden to visible */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  overflow-x: auto;
+  width: 100%;
+  /* Removed any height constraints if present */
+}
+
+.table h2 {
+  padding: 20px;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  padding: 14px 20px;
+  font-size: 13px;
+  color: #888;
+  text-align: left;
+}
+
+td {
+  padding: 16px 20px;
+  font-size: 14px;
+}
+
+tr:not(:last-child) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Performance bar */
+.progress-bar {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f2994a, #f2c94c);
+  border-radius: 6px;
+}
+
+.table-actions {
+  display: flex;
+  gap: 10px; /* spacing between buttons */
+}
+
+.table-actions button {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1); /* default frosted glass */
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.table-actions button:hover {
+  background: rgba(255, 255, 255, 0.2); /* hover frosted */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.table-actions button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Delete button variant */
+.table-actions button.delete {
+  background: rgba(109, 22, 22, 0.488); /* soft red glass */
+  color: #fff;
+}
+
+.table-actions button.delete:hover {
+  background: rgb(197, 10, 10); /* slightly stronger red on hover */
+}

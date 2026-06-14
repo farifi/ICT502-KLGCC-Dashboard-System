@@ -1,0 +1,279 @@
+.default-page {
+  height: 100vh;
+  padding: 24px;
+  overflow: hidden;
+
+  background: linear-gradient(
+    135deg,
+    #e6bfa3 0%,
+    #e2e2e2 45%,
+    #f0f0f0 100%
+  );
+}
+
+.default {
+  height: 100%; /* take full height of .app */
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  grid-template-rows: 1fr; /* Force row to take available height, enabling scroll in child */
+  gap: 24px;
+  overflow: hidden;
+  position: relative;
+}
+
+.sidebar-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+  .default-page {
+    padding: 16px;
+  }
+
+  .default {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Hide sidebar by default on mobile */
+  .sidebar-wrapper {
+    position: absolute;
+    left: -280px;
+    top: 0;
+    bottom: 0;
+    width: 260px;
+    background: rgba(255, 255, 255, 0.9); /* Opaque background for readability */
+    backdrop-filter: blur(20px);
+    z-index: 100;
+    padding: 20px;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+    transition: left 0.3s ease;
+    border-right: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 16px 16px 16px 16px;
+    overflow-x: visible;
+    overflow-y: auto;
+  }
+
+  .sidebar-wrapper.open {
+    left: 0;
+  }
+
+  .sidebar-overlay.open {
+    display: block;
+    opacity: 1;
+  }
+}
+
+/* THIS is the container for Header + Content */
+.default-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%; /* Ensure it fills the grid cell */
+  min-height: 0; 
+  overflow: hidden; /* Prevent main container from scrolling */
+}
+
+/* Scrollable content area */
+.default-content {
+  flex: 1;
+  overflow-y: overlay; /* Allows scrollbar to sit on top of content (Webkit only) */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-right: 8px; /* Space for scrollbar */
+  padding-bottom: 24px; /* Bottom spacing */
+  
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent; /* Hide by default for Firefox */
+  transition: scrollbar-color 0.3s ease;
+}
+
+/* Show scrollbar on hover */
+.default-content:hover {
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Webkit Scrollbar Styling (Chrome, Edge, Safari) */
+.default-content::-webkit-scrollbar {
+  width: 6px;
+  background: transparent;
+}
+
+.default-content::-webkit-scrollbar-thumb {
+  background: transparent; /* Hidden by default */
+  border-radius: 999px;
+  transition: background 0.3s ease;
+}
+
+.default-content:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2); /* Visible on hover */
+}
+
+.default-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Dashboard layout similar to reference image */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-rows: auto auto auto;
+  grid-template-areas:
+    "top1 top2 top3"
+    "main main side1"
+    "main main side2"
+    "txn txn txn";
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "top1"
+      "top2"
+      "top3"
+      "main"
+      "side1"
+      "side2"
+      "txn";
+  }
+  .chart-container {
+    aspect-ratio: auto; /* let it shrink naturally */
+    min-height: 200px;
+  }
+}
+
+.dashboard-card {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-container {
+  flex: 1; /* fill the card */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+} 
+
+.chart-wrapper {
+  width: 100%;
+  display: flex;
+  flex: 1; /* fill available vertical space inside the card */
+  min-height: 160px; /* ensure a sensible minimum */
+  position: relative;
+  overflow: visible; /* allow tooltips to extend outside the chart area */
+}
+
+.chart-wrapper svg {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative;
+  z-index: 0;
+}
+
+/* Ensure Recharts tooltips appear above other elements */
+.recharts-tooltip-wrapper {
+  position: relative;
+  z-index: 9999 !important;
+  pointer-events: auto;
+}
+
+.chart-description {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #555;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.chart-description {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #555;
+  text-align: center;
+}
+
+.dashboard-card--top1 { grid-area: top1; }
+.dashboard-card--top2 { grid-area: top2; }
+.dashboard-card--top3 { grid-area: top3; }
+.dashboard-card--main { grid-area: main; }
+.dashboard-card--side1 { grid-area: side1; }
+.dashboard-card--side2 { grid-area: side2; }
+.dashboard-card--txn { grid-area: txn; }
+
+.add-btn {
+  padding: 10px 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1); /* frosted glass */
+  backdrop-filter: blur(10px);
+  color: #000000;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.add-btn:hover {
+  background: rgba(128, 128, 128, 0.307);
+  box-shadow: 6px 6px 20px rgba(103, 103, 103, 0.245);
+  transform: translateY(-2px);
+  color: #fffcfc;
+}
+
+.add-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.pagination {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0 15px;
+}
+
+.pagination button {
+  padding: 4px 8px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+}
+
+.pagination button.active {
+  background: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.pagination button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.pagination .dots {
+  padding: 4px 6px;
+  color: #aaa;
+}
