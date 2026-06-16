@@ -4,8 +4,6 @@ const oracledb = require('oracledb');
 const {
     signAccessToken,
     signRefreshToken,
-    verifyAccessToken,
-    verifyRefreshToken,
     revokeRefreshToken,
     hasRefreshToken,
     getUserFromRefreshToken,
@@ -15,56 +13,77 @@ exports.signup = async (req, res) => {
     const { full_name, email, phone_number, password } = req.body;
     let conn;
 
-    try{
+    try {
+        if (!email || !password || !full_name) {
+            return res.status(400).json({ message: "Name, email and password are required" });
+        }
+
         conn = await getConnection();
 
         const isStaff = email.endsWith('@klgcc.com');
-        const table = isStaff ? 'STAFF' : 'CUSTOMER';
-        const idColumn = isStaff ? 'STAFF_ID' : 'CUSTOMER_ID';
-        
-        // if email already exists
-        const existing = await conn.execute(
-            `SELECT ${idColumn} FROM ${table} WHERE EMAIL = :email`, [email],
-            { outFormat: oracledb.OUT_FORMAT_OBJECT }
-        );
-
-        if (existing.rows.length > 0) {
-            return res.status(400).json({ message: "Email already exists" });
-        }
-
-        const passwordHash = await bcrypt.hash(password, 10);
 
         if (isStaff) {
-            await conn.execute(
-                `INSERT INTO STAFF (STAFF_ID, FULL_NAME, EMAIL, PHONE, PASSWORD_HASH)
-                 VALUES (STAFF_SEQ.NEXTVAL, :full_name, :email, :phone, :password_hash)`,
-                 {
-                    full_name: full_name,
-                    email,
-                    phone: phone_number || null,
-                    password_hash: passwordHash 
-                 },
-                 { autoCommit: true }
+            const existing = await conn.execute(
+                `SELECT STAFFID FROM STAFF WHERE STAFFEMAIL = :email`,
+                { email },
+                { outFormat: oracledb.OUT_FORMAT_OBJECT }
             );
-        } else {
+
+            if (existing.rows.length > 0) {
+                return res.status(400).json({ message: "Email already exists" });
+            }
+
+            const passwordHash = await bcrypt.hash(password, 10);
+
             await conn.execute(
-                `INSERT INTO CUSTOMER (CUSTOMER_ID, FULL_NAME, EMAIL, PHONE_NUMBER, PASSWORD_HASH)
-                 VALUES (CUSTOMER_SEQ.NEXTVAL, :full_name, :email, :phone, :password_hash)`,
+                `INSERT INTO STAFF (STAFFID, STAFFNAME, STAFFEMAIL, STAFFPHONENUM, STAFFPASSWORD)
+                 VALUES (STAFF_SEQ.NEXTVAL, :name, :email, :phone, :password)`,
                 {
-                    full_name: full_name,
-                    email,
-                    phone: phone_number || null,
-                    password_hash: passwordHash
+                    name:     full_name,
+                    email:    email,
+                    phone:    phone_number || null,
+                    password: passwordHash,
                 },
                 { autoCommit: true }
             );
+
+            return res.status(201).json({
+                message: "Staff registered successfully",
+                email,
+                role: "staff"
+            });
+
+        } else {
+            const existing = await conn.execute(
+                `SELECT CUSTOMERID FROM CUSTOMER WHERE CUSTOMEREMAIL = :email`,
+                { email },
+                { outFormat: oracledb.OUT_FORMAT_OBJECT }
+            );
+
+            if (existing.rows.length > 0) {
+                return res.status(400).json({ message: "Email already exists" });
+            }
+
+            const passwordHash = await bcrypt.hash(password, 10);
+
+            await conn.execute(
+                `INSERT INTO CUSTOMER (CUSTOMERID, CUSTOMERNAME, CUSTOMEREMAIL, CUSTOMERPHONENUM, CUSTOMERPASSWORD)
+                 VALUES (CUSTOMER_SEQ.NEXTVAL, :name, :email, :phone, :password)`,
+                {
+                    name:     full_name,
+                    email:    email,
+                    phone:    phone_number || null,
+                    password: passwordHash,
+                },
+                { autoCommit: true }
+            );
+
+            return res.status(201).json({
+                message: "Customer registered successfully",
+                email,
+                role: "customer"
+            });
         }
-        
-        res.status(201).json({
-            message: `${isStaff ? 'Staff' : 'Customer'} registered successfully`,
-            email,
-            role: isStaff ? 'staff' : 'customer'
-        });
 
     } catch (err) {
         console.error('Signup error:', err);
@@ -82,115 +101,108 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
     let conn;
 
-    try{
-        conn = await getConnection();
-        
-        let query, binds;
-        const isStaff = email.endsWith('@klgcc.com');
-
-        if (email.endsWith('@klgcc.com')) {
-            // Staff login
-            query = `SELECT STAFF_ID, FULL_NAME, EMAIL, PASSWORD_HASH FROM STAFF WHERE EMAIL = :email`;
-            binds = [email];
-        } else {
-            // Customer login
-            query = `SELECT CUSTOMER_ID, FULL_NAME, EMAIL, PASSWORD_HASH FROM CUSTOMER WHERE EMAIL = :email`;
-            binds = [email];
+    try {
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required" });
         }
 
-        const result = await conn.execute(query, binds, { outFormat: oracledb.OUT_FORMAT_OBJECT});
+        conn = await getConnection();
+
+        const isStaff = email.endsWith('@klgcc.com');
+        let result;
+
+        if (isStaff) {
+            result = await conn.execute(
+                `SELECT STAFFID, STAFFNAME, STAFFEMAIL, STAFFPASSWORD, STAFFPOSITION
+                 FROM STAFF WHERE STAFFEMAIL = :email`,
+                { email },
+                { outFormat: oracledb.OUT_FORMAT_OBJECT }
+            );
+        } else {
+            result = await conn.execute(
+                `SELECT CUSTOMERID, CUSTOMERNAME, CUSTOMEREMAIL, CUSTOMERPASSWORD
+                 FROM CUSTOMER WHERE CUSTOMEREMAIL = :email`,
+                { email },
+                { outFormat: oracledb.OUT_FORMAT_OBJECT }
+            );
+        }
 
         if (result.rows.length === 0) {
-            return res.status(401).json({ message: "Invalid email or password"});
+            return res.status(401).json({ message: "Invalid email or password" });
         }
 
         const dbUser = result.rows[0];
-        
-        const isMatch = await bcrypt.compare(password, dbUser.PASSWORD_HASH);
+
+        const storedHash = isStaff ? dbUser.STAFFPASSWORD : dbUser.CUSTOMERPASSWORD;
+        const isMatch = await bcrypt.compare(password, storedHash);
 
         if (!isMatch) {
             return res.status(401).json({ message: "Invalid email or password" });
         }
 
-        // Build normalized user object for tokens
         const user = {
-            id: isStaff ? dbUser.STAFF_ID : dbUser.CUSTOMER_ID,
-            email: dbUser.EMAIL,
-            name: dbUser.FULL_NAME,
-            role: isStaff ? 'staff' : 'customer'
+            id:       isStaff ? dbUser.STAFFID       : dbUser.CUSTOMERID,
+            email:    isStaff ? dbUser.STAFFEMAIL     : dbUser.CUSTOMEREMAIL,
+            name:     isStaff ? dbUser.STAFFNAME      : dbUser.CUSTOMERNAME,
+            position: isStaff ? dbUser.STAFFPOSITION  : null,
+            role:     isStaff ? 'staff'               : 'customer'
         };
 
-        const accessToken = signAccessToken(user);
+        const accessToken  = signAccessToken(user);
         const refreshToken = signRefreshToken(user);
 
-        // Send refresh token as HttpOnly cookie
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false, // set to true in production with HTTPS
+            secure: false,       // set true in production with HTTPS
             sameSite: "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
 
-        res.json({
+        return res.json({
             message: `${isStaff ? 'Staff' : 'Customer'} login successful`,
             accessToken,
             user
         });
 
-
     } catch (err) {
-        console.error(err);
+        console.error('Login error:', err);
         if (!res.headersSent) {
             res.status(500).json({ message: "Server error", error: err.message });
         }
     } finally {
         if (conn) {
-            try { 
-                await conn.close(); 
-            } catch (err) { 
-                console.error(err); 
-            }
+            try { await conn.close(); } catch (err) { console.error(err); }
         }
     }
-}
+};
 
 exports.logout = (req, res) => {
     const token = req.cookies?.refreshToken;
-    if (token) {
-        revokeRefreshToken(token);
-    }
+    if (token) revokeRefreshToken(token);
     res.clearCookie("refreshToken");
     res.json({ message: "Logged out successfully" });
 };
 
 exports.refreshToken = (req, res) => {
     const token = req.cookies?.refreshToken;
+
     if (!token) {
         return res.status(401).json({ message: "No refresh token provided" });
     }
-
     if (!hasRefreshToken(token)) {
         return res.status(403).json({ message: "Invalid refresh token" });
     }
 
     try {
-        verifyRefreshToken(token);
+        const storedUser     = getUserFromRefreshToken(token);
+        const newAccessToken = signAccessToken(storedUser);
+        return res.json({ accessToken: newAccessToken, user: storedUser });
     } catch (err) {
         revokeRefreshToken(token);
         return res.status(403).json({ message: "Invalid refresh token" });
     }
-
-    const storedUser = getUserFromRefreshToken(token);
-    const newAccessToken = signAccessToken(storedUser);
-
-    return res.json({ accessToken: newAccessToken, user: storedUser });
 };
 
-// This endpoint now uses the authenticateToken middleware
-// The middleware attaches req.user, so we can just return it
 exports.protected = (req, res) => {
-    return res.json({
-        message: "Protected data",
-        user: req.user // User info attached by authenticateToken middleware
-    });
+    return res.json({ message: "Protected data", user: req.user });
 };

@@ -17,21 +17,18 @@ export const StaffProvider = ({ children }) => {
 
     const createStaff = async (staff) => {
         try {
-          const res = await API.post("/api/staff/createStaff", staff);
-          setStaffList(prev => [...prev, res.data.staff]);
+            const res = await API.post("/api/staff/createStaff", staff);
+            setStaffList(prev => [...prev, res.data.staff]);
         } catch (err) {
-          alert("Failed to create staff");
+            alert("Failed to create staff");
         }
-      };
-      
+    };
 
-    const deleteStaff = async (staff_id) => {
+    const deleteStaff = async (staffId) => {
         try {
-            const res = await API.delete(`/api/staff/${staff_id}`);
-            setStaffList( prev => prev.filter(
-                staff => staff.STAFF_ID !== staff_id 
-            ));
-            res.data.message;
+            await API.delete(`/api/staff/${staffId}`);
+            // Oracle returns STAFFID (all caps), so filter on that
+            setStaffList(prev => prev.filter(s => s.STAFFID !== staffId));
         } catch (err) {
             alert("Failed to delete staff");
         }
@@ -39,23 +36,20 @@ export const StaffProvider = ({ children }) => {
 
     const updateStaff = async (staff) => {
         try {
-            await API.put(`/api/staff/${staff.STAFF_ID}`, staff);
+            await API.put(`/api/staff/${staff.STAFFID}`, staff);
             setStaffList(prev =>
-                prev.map(s => s.STAFF_ID === staff.STAFF_ID ? staff : s)
+                prev.map(s => s.STAFFID === staff.STAFFID ? staff : s)
             );
         } catch (err) {
             alert("Failed to update staff");
         }
     };
 
-
     return (
-        <StaffContext.Provider value={{ staffList, fetchStaffList , deleteStaff, updateStaff, createStaff}}>
+        <StaffContext.Provider value={{ staffList, fetchStaffList, deleteStaff, updateStaff, createStaff }}>
             {children}
         </StaffContext.Provider>
     );
 };
 
-export const useStaff = () => {
-    return useContext(StaffContext);
-};
+export const useStaff = () => useContext(StaffContext);

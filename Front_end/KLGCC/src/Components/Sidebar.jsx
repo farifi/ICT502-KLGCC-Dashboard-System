@@ -37,12 +37,11 @@ const Sidebar = () => {
     const mainMenuItems = [
         { label: "Dashboard", icon: LayoutDashboard },
         { label: "Staff", icon: ListTodo },
-        { label: "Booking", icon: CalendarIcon },
+        { label: "Car", icon: CalendarIcon },
         { label: "Customer", icon: Users },
-        { label: "Equipment", icon: Package },
-        { label: "Course", icon: Globe },
-        { label: "Tee Time", icon: Flag },
-        { label: "Cart", icon: ShoppingCart },
+        { label: "Rental", icon: Package },
+        { label: "Payment", icon: Globe },
+        { label: "Service", icon: Flag },
     ];
 
     const renderMenuItem = (item) => {

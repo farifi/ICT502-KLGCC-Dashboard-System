@@ -11,10 +11,9 @@ import "./Pages CSS files/DefaultTheme.css";
 
 const Staff = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
     const closeSidebar = () => setIsSidebarOpen(false);
-    
+
     const { staffList, fetchStaffList, updateStaff, deleteStaff, createStaff } = useStaff();
 
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -26,19 +25,20 @@ const Staff = () => {
     }, []);
 
     const staffColumns = [
-        { header: "ID", key: "STAFF_ID" },
-        { header: "Name", key: "STAFF_NAME" },
-        { header: "Email", key: "EMAIL" },
-        { header: "Phone No", key: "PHONE" },
-        { header: "Supervisor ID", key: "SUPERVISOR_ID" },
-        { header: "Supervisor Name", key: "SUPERVISOR_NAME" },
-        { 
+        { header: "ID",                  key: "STAFFID" },
+        { header: "Name",                key: "STAFFNAME" },
+        { header: "Email",               key: "STAFFEMAIL" },
+        { header: "Phone No",            key: "STAFFPHONENUM" },
+        { header: "Identification Card", key: "STAFFIC" },
+        { header: "Position",            key: "STAFFPOSITION" },
+        { header: "Supervisor",          key: "SUPERVISOR_NAME" },
+        {
             header: "Actions",
             key: "actions",
             render: (row) => (
                 <div className="table-actions">
                     <button onClick={() => handleEdit(row)}>✏️</button>
-                    <button className="delete" onClick={() => handleDelete(row.STAFF_ID)}>🗑</button>
+                    <button className="delete" onClick={() => handleDelete(row.STAFFID)}>🗑</button>
                 </div>
             )
         }
@@ -47,12 +47,12 @@ const Staff = () => {
     const handleEdit = (staff) => {
         setSelectedStaff(staff);
         setIsEditOpen(true);
-    }
+    };
 
     const handleDelete = (id) => {
         if (!confirm("Are you sure you want to delete this staff?")) return;
         deleteStaff(id);
-    }
+    };
 
     return (
         <div className="default-page">
@@ -64,23 +64,20 @@ const Staff = () => {
                 <div className="default-main">
                     <Header toggleSidebar={toggleSidebar} />
                     <div className="table-header">
-                        <button 
-                            className="add-btn" 
-                            onClick={() => setIsAddOpen(true)}
-                        >+ Add Staff </button>
+                        <button className="add-btn" onClick={() => setIsAddOpen(true)}>
+                            + Add Staff
+                        </button>
                     </div>
-
                     <div className="default-content">
-                        <Table title="Staff List" columns={staffColumns} data={staffList}/>
-                        
+                        <Table title="Staff List" columns={staffColumns} data={staffList} />
                     </div>
                 </div>
-                
             </div>
+
             <Modal isOpen={isEditOpen} title="Edit Staff" onClose={() => setIsEditOpen(false)}>
                 <EditStaffForm
                     staff={selectedStaff}
-                    staffList={staffList}  // <-- pass it here
+                    staffList={staffList}
                     onCancel={() => setIsEditOpen(false)}
                     onSave={(updatedStaff) => {
                         updateStaff(updatedStaff);
@@ -88,15 +85,12 @@ const Staff = () => {
                     }}
                 />
             </Modal>
-            <Modal
-                isOpen={isAddOpen}
-                title="Create Staff"
-                onClose={() => setIsAddOpen(false)}
-                >
+
+            <Modal isOpen={isAddOpen} title="Create Staff" onClose={() => setIsAddOpen(false)}>
                 <AddStaffForm
-                        staffList={staffList}
-                        onCancel={() => setIsAddOpen(false)}
-                        onCreate={(newStaff) => {
+                    staffList={staffList}
+                    onCancel={() => setIsAddOpen(false)}
+                    onCreate={(newStaff) => {
                         createStaff(newStaff);
                         setIsAddOpen(false);
                     }}
