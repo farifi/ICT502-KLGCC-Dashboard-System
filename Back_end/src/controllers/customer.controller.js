@@ -2,36 +2,30 @@ const { getConnection } = require('../config/db.js');
 const oracledb = require('oracledb');
 const bcrypt = require('bcryptjs');
 
-// ─── Shared column map for SELECT ───────────────────────────────────────────
-// Schema uses CUST* prefix: CUSTID, CUSTNAME, CUSTEMAIL, CUSTPHONENUM, CUSTPASSWORD
-// We alias them to friendly names so the frontend key stays consistent.
 const CUSTOMER_SELECT = `
     SELECT
-        c.CUSTID          AS CUSTOMER_ID,
-        c.CUSTNAME        AS FULL_NAME,
-        c.CUSTEMAIL       AS EMAIL,
-        c.CUSTPHONENUM    AS PHONE_NUMBER,
-        c.CUSTLICENSENO   AS LICENSE_NO,
-        c.CUSTADDRESS     AS ADDRESS,
-        c.CUSTUSERNAME    AS USERNAME,
-        c.CUSTIC          AS IC
+        c.CUSTID,
+        c.CUSTNAME,
+        c.CUSTEMAIL,
+        c.CUSTPHONENUM,
+        c.CUSTIC,
+        c.CUSTLICENSENO,
+        c.CUSTADDRESS,
+        c.CUSTUSERNAME
     FROM CUSTOMER c
 `;
 
-// ─── Helper: paginate ────────────────────────────────────────────────────────
 const paginate = (page, limit) => {
-    const p   = Math.max(1, parseInt(page)  || 1);
-    const l   = Math.max(1, parseInt(limit) || 5);
+    const p      = Math.max(1, parseInt(page)  || 1);
+    const l      = Math.max(1, parseInt(limit) || 5);
     const offset = (p - 1) * l;
-    return { p, l, offset };
+    return { l, offset };
 };
 
 // ─── All Customers (paginated) ───────────────────────────────────────────────
 exports.customerList = async (req, res) => {
-    const { page, limit } = req.query;
-    const { p, l, offset } = paginate(page, limit);
+    const { l, offset } = paginate(req.query.page, req.query.limit);
     let conn;
-
     try {
         conn = await getConnection();
 
@@ -52,7 +46,6 @@ exports.customerList = async (req, res) => {
         );
 
         res.status(200).json({ customers: result.rows, totalPages, total });
-
     } catch (err) {
         console.error('customerList error:', err);
         if (!res.headersSent) res.status(500).json({ message: "Server error", error: err.message });
@@ -61,12 +54,10 @@ exports.customerList = async (req, res) => {
     }
 };
 
-// ─── Member Customers (have a license number — treated as members) ───────────
+// ─── Member Customers (have license number) ──────────────────────────────────
 exports.memberList = async (req, res) => {
-    const { page, limit } = req.query;
-    const { p, l, offset } = paginate(page, limit);
+    const { l, offset } = paginate(req.query.page, req.query.limit);
     let conn;
-
     try {
         conn = await getConnection();
 
@@ -88,7 +79,6 @@ exports.memberList = async (req, res) => {
         );
 
         res.status(200).json({ customers: result.rows, totalPages, total });
-
     } catch (err) {
         console.error('memberList error:', err);
         if (!res.headersSent) res.status(500).json({ message: "Server error", error: err.message });
@@ -99,10 +89,8 @@ exports.memberList = async (req, res) => {
 
 // ─── Walk-in Customers (no license number) ───────────────────────────────────
 exports.walkinList = async (req, res) => {
-    const { page, limit } = req.query;
-    const { p, l, offset } = paginate(page, limit);
+    const { l, offset } = paginate(req.query.page, req.query.limit);
     let conn;
-
     try {
         conn = await getConnection();
 
@@ -124,7 +112,6 @@ exports.walkinList = async (req, res) => {
         );
 
         res.status(200).json({ customers: result.rows, totalPages, total });
-
     } catch (err) {
         console.error('walkinList error:', err);
         if (!res.headersSent) res.status(500).json({ message: "Server error", error: err.message });
@@ -134,12 +121,22 @@ exports.walkinList = async (req, res) => {
 };
 
 // ─── Create Customer ─────────────────────────────────────────────────────────
+// Reads CUST* keys directly — matches AddCustomerForm field names
 exports.createCustomer = async (req, res) => {
-    const { fullName, email, phoneNum, ic, licenseNo, address, username, password } = req.body;
-    let conn;
+    const {
+        CUSTNAME,
+        CUSTEMAIL,
+        CUSTPHONENUM,
+        CUSTIC,
+        CUSTLICENSENO,
+        CUSTADDRESS,
+        CUSTUSERNAME,
+        CUSTPASSWORD,
+    } = req.body;
 
+    let conn;
     try {
-        if (!fullName || !email || !password) {
+        if (!CUSTNAME || !CUSTEMAIL || !CUSTPASSWORD) {
             return res.status(400).json({ message: "Name, email and password are required" });
         }
 
@@ -147,14 +144,14 @@ exports.createCustomer = async (req, res) => {
 
         const existing = await conn.execute(
             `SELECT CUSTID FROM CUSTOMER WHERE CUSTEMAIL = :email`,
-            { email },
+            { email: CUSTEMAIL },
             { outFormat: oracledb.OUT_FORMAT_OBJECT }
         );
         if (existing.rows.length > 0) {
             return res.status(400).json({ message: "Email already exists" });
         }
 
-        const passwordHash = await bcrypt.hash(password, 10);
+        const passwordHash = await bcrypt.hash(CUSTPASSWORD, 10);
 
         const result = await conn.execute(
             `INSERT INTO CUSTOMER
@@ -163,13 +160,13 @@ exports.createCustomer = async (req, res) => {
                 (CUSTOMER_SEQ.NEXTVAL, :name, :email, :phone, :ic, :licenseNo, :address, :username, :password)
              RETURNING CUSTID INTO :id`,
             {
-                name:      fullName,
-                email:     email,
-                phone:     phoneNum   || null,
-                ic:        ic         || null,
-                licenseNo: licenseNo  || null,
-                address:   address    || null,
-                username:  username   || null,
+                name:      CUSTNAME,
+                email:     CUSTEMAIL,
+                phone:     CUSTPHONENUM  || null,
+                ic:        CUSTIC        || null,
+                licenseNo: CUSTLICENSENO || null,
+                address:   CUSTADDRESS   || null,
+                username:  CUSTUSERNAME  || null,
                 password:  passwordHash,
                 id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
             },
@@ -185,7 +182,6 @@ exports.createCustomer = async (req, res) => {
         );
 
         res.status(201).json({ customer: customer.rows[0] });
-
     } catch (err) {
         console.error('createCustomer error:', err);
         if (!res.headersSent) res.status(500).json({ message: "Server error", error: err.message });
@@ -195,9 +191,18 @@ exports.createCustomer = async (req, res) => {
 };
 
 // ─── Update Customer ─────────────────────────────────────────────────────────
+// Reads CUST* keys directly — matches EditCustomerForm field names
 exports.updateCustomer = async (req, res) => {
     const { id } = req.params;
-    const { fullName, email, phoneNum, ic, licenseNo, address, username } = req.body;
+    const {
+        CUSTNAME,
+        CUSTEMAIL,
+        CUSTPHONENUM,
+        CUSTIC,
+        CUSTLICENSENO,
+        CUSTADDRESS,
+        CUSTUSERNAME,
+    } = req.body;
 
     if (!id) return res.status(400).json({ message: 'Customer ID is required' });
 
@@ -216,14 +221,14 @@ exports.updateCustomer = async (req, res) => {
                 CUSTUSERNAME  = :username
              WHERE CUSTID = :id`,
             {
-                name:      fullName,
-                email:     email,
-                phone:     phoneNum  || null,
-                ic:        ic        || null,
-                licenseNo: licenseNo || null,
-                address:   address   || null,
-                username:  username  || null,
-                id
+                name:      CUSTNAME,
+                email:     CUSTEMAIL,
+                phone:     CUSTPHONENUM  || null,
+                ic:        CUSTIC        || null,
+                licenseNo: CUSTLICENSENO || null,
+                address:   CUSTADDRESS   || null,
+                username:  CUSTUSERNAME  || null,
+                id,
             },
             { autoCommit: true }
         );
@@ -233,7 +238,6 @@ exports.updateCustomer = async (req, res) => {
         }
 
         res.status(200).json({ message: "Customer updated successfully" });
-
     } catch (err) {
         console.error('updateCustomer error:', err);
         if (!res.headersSent) res.status(500).json({ message: "Server error", error: err.message });
@@ -262,7 +266,6 @@ exports.deleteCustomer = async (req, res) => {
         }
 
         res.status(200).json({ message: "Customer deleted successfully" });
-
     } catch (err) {
         console.error('deleteCustomer error:', err);
         if (!res.headersSent) res.status(500).json({ message: "Server error", error: err.message });
