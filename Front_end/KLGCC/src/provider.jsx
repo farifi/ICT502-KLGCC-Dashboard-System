@@ -3,7 +3,7 @@ import { StaffProvider } from "./API Contexts Folder/StaffContext";
 import { DashboardProvider } from "./API Contexts Folder/DashboardContext";
 import { BookingProvider } from "./API Contexts Folder/BookingContext";
 import { EquipmentProvider } from "./API Contexts Folder/EquipmentContext";
-import { CourseProvider } from "./API Contexts Folder/CourseContext";
+import { PaymentProvider } from "./API Contexts Folder/PaymentContext";
 import { TeeTimeProvider } from "./API Contexts Folder/TeeTimeContext";
 import { CartProvider } from "./API Contexts Folder/CartContext";
 import { CustomerProvider } from "./API Contexts Folder/CustomerContext"; 
@@ -15,7 +15,7 @@ const Providers = ({ children }) => {
         <DashboardProvider>
           <BookingProvider>
             <EquipmentProvider>
-               <CourseProvider>
+               <PaymentProvider>
                 <TeeTimeProvider>
                   <CartProvider>
                     <CustomerProvider>
@@ -23,7 +23,7 @@ const Providers = ({ children }) => {
                     </CustomerProvider>
                   </CartProvider>
                 </TeeTimeProvider>
-              </CourseProvider>
+              </PaymentProvider>
             </EquipmentProvider>
           </BookingProvider>
         </DashboardProvider> 

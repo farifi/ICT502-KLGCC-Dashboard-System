@@ -3,9 +3,9 @@ import Sidebar from "../Components/Sidebar.jsx";
 import Header from "../Components/Header.jsx";
 import Table from "../Components/Table.jsx";
 import Modal from "../Components/Modal.jsx";
-import { useCourse } from "../API Contexts Folder/CourseContext";
-import AddCourseForm from "../Components/Form/AddCourseForm.jsx";
-import EditCourseForm from "../Components/Form/EditCourseForm.jsx";
+import { usePayment } from "../API Contexts Folder/PaymentContext.jsx";
+import AddPaymentForm from "../Components/Form/AddPaymentForm.jsx";
+import EditPaymentForm from "../Components/Form/EditPaymentForm.jsx";
 import "./Pages CSS files/DefaultTheme.css";
 
 // ---------------- Standardized Pagination Component ----------------
@@ -51,52 +51,52 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   );
 };
 
-// ---------------- Course Management Page ----------------
-const Course = () => {
+// ---------------- Payment Management Page ----------------
+const Payment = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [selectedPayment, setSelectedPayment] = useState(null);
 
   const { 
-    courseList, 
+    paymentList, 
     totalPages, 
-    fetchCourseList, 
-    createCourse, 
-    updateCourse, 
-    deleteCourse 
-  } = useCourse();
+    fetchPaymentList, 
+    createPayment, 
+    updatePayment, 
+    deletePayment 
+  } = usePayment();
 
   // Fetch data whenever page changes
   useEffect(() => {
-    fetchCourseList(currentPage);
+    fetchPaymentList(currentPage);
   }, [currentPage]);
 
   const handleRefresh = () => {
-    fetchCourseList(currentPage);
+    fetchPaymentList(currentPage);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this course?")) {
-      await deleteCourse(id);
+    if (window.confirm("Are you sure you want to delete this payment?")) {
+      await deletePayment(id);
       handleRefresh();
     }
   };
 
-  const courseColumns = [
-    { header: "ID", key: "COURSE_ID" },
-    { header: "Name", key: "COURSE_NAME" },
-    { header: "Description", key: "DESCRIPTION" },
-    { header: "Holes", key: "HOLES" },
-    { header: "Difficulty", key: "DIFFICULTY_LEVEL" },
+  const paymentColumns = [
+    { header: "ID", key: "PAYMENTID" },
+    { header: "Amount", key: "PAYMENTAMOUNT" },
+    { header: "Method", key: "PAYMENTMETHOD" },
+    { header: "Date", key: "PAYMENTDATE" },
+    { header: "Status", key: "PAYMENTSTATUS" },
     {
       header: "Actions",
       key: "actions",
       render: (row) => (
         <div className="table-actions">
-          <button onClick={() => { setSelectedCourse(row); setIsEditOpen(true); }}>✏️</button>
-          <button className="delete" onClick={() => handleDelete(row.COURSE_ID)}>🗑</button>
+          <button onClick={() => { setSelectedPayment(row); setIsEditOpen(true); }}>✏️</button>
+          <button className="delete" onClick={() => handleDelete(row.PAYMENTID)}>🗑</button>
         </div>
       ),
     },
@@ -114,13 +114,13 @@ const Course = () => {
           
           <div className="table-header">
             <button className="add-btn" onClick={() => setIsAddOpen(true)}>
-              + Add Course
+              + Add Payment
             </button>
           </div>
           
           <div className="default-content">
-            <h2>Course Management</h2>
-            <Table columns={courseColumns} data={courseList} />
+            <h2>Payment Management</h2>
+            <Table columns={paymentColumns} data={paymentList} />
             
             <div className="pagination-container">
               <Pagination 
@@ -134,11 +134,11 @@ const Course = () => {
       </div>
 
       {/* Add Modal */}
-      <Modal isOpen={isAddOpen} title="Add New Course" onClose={() => setIsAddOpen(false)}>
-        <AddCourseForm 
+      <Modal isOpen={isAddOpen} title="Add New Payment" onClose={() => setIsAddOpen(false)}>
+        <AddPaymentForm 
           onCancel={() => setIsAddOpen(false)} 
           onCreate={async (data) => { 
-            await createCourse(data); 
+            await createPayment(data); 
             setIsAddOpen(false); 
             handleRefresh(); 
           }} 
@@ -146,12 +146,12 @@ const Course = () => {
       </Modal>
 
       {/* Edit Modal */}
-      <Modal isOpen={isEditOpen} title="Edit Course" onClose={() => setIsEditOpen(false)}>
-        <EditCourseForm 
-          course={selectedCourse} 
+      <Modal isOpen={isEditOpen} title="Edit Payment" onClose={() => setIsEditOpen(false)}>
+        <EditPaymentForm 
+          payment={selectedPayment} 
           onCancel={() => setIsEditOpen(false)} 
           onSave={async (data) => { 
-            await updateCourse(data); 
+            await updatePayment(data); 
             setIsEditOpen(false); 
             handleRefresh(); 
           }} 
@@ -161,4 +161,4 @@ const Course = () => {
   );
 };
 
-export default Course;
+export default Payment;
