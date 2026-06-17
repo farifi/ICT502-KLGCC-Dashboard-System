@@ -1,54 +1,57 @@
 import { useState, useEffect } from "react";
-import "../Components CSS files/EditStaffForm.css"; 
+import "../Components CSS files/EditStaffForm.css";
 
 const EditCustomerForm = ({ customer, onCancel, onSave }) => {
   const [formData, setFormData] = useState({
-    FULL_NAME: "",
-    EMAIL: "",
-    PHONE_NUMBER: ""
+    CUSTNAME: "",
+    CUSTPHONENUM: "",
+    CUSTIC: "",
+    CUSTEMAIL: "",
+    CUSTLICENSENO: "",
+    CUSTADDRESS: "",
   });
 
   useEffect(() => {
     if (customer) {
       setFormData({
-        FULL_NAME: customer.FULL_NAME || "",
-        EMAIL: customer.EMAIL || "",
-        PHONE_NUMBER: customer.PHONE_NUMBER || ""
+        CUSTNAME: customer.CUSTNAME || "",
+        CUSTPHONENUM: customer.CUSTPHONENUM || "",
+        CUSTIC: customer.CUSTIC || "",
+        CUSTEMAIL: customer.CUSTEMAIL || "",
+        CUSTLICENSENO: customer.CUSTLICENSENO || "",
+        CUSTADDRESS: customer.CUSTADDRESS || "",
       });
     }
   }, [customer]);
 
   const handleChange = (e) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (!customer) return;
 
     onSave({
-      CUSTOMER_ID: customer.CUSTOMER_ID,
-      ...formData
+      CUSTID: customer.CUSTID,
+      ...formData,
     });
   };
 
   return (
     <form className="edit-staff-form" onSubmit={handleSubmit}>
       <label>
-        Full Name
+        Customer Name
         <input
-          name="FULL_NAME"
-          value={formData.FULL_NAME}
-          onChange={handleChange}
-          required
-        />
-      </label>
-
-      <label>
-        Email
-        <input
-          name="EMAIL"
-          value={formData.EMAIL}
+          type="text"
+          name="CUSTNAME"
+          value={formData.CUSTNAME}
           onChange={handleChange}
           required
         />
@@ -57,16 +60,61 @@ const EditCustomerForm = ({ customer, onCancel, onSave }) => {
       <label>
         Phone Number
         <input
-          name="PHONE_NUMBER"
-          value={formData.PHONE_NUMBER}
+          type="text"
+          name="CUSTPHONENUM"
+          value={formData.CUSTPHONENUM}
           onChange={handleChange}
-          required
+        />
+      </label>
+
+      <label>
+        IC Number
+        <input
+          type="text"
+          name="CUSTIC"
+          value={formData.CUSTIC}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>
+        Email
+        <input
+          type="email"
+          name="CUSTEMAIL"
+          value={formData.CUSTEMAIL}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>
+        License Number
+        <input
+          type="text"
+          name="CUSTLICENSENO"
+          value={formData.CUSTLICENSENO}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>
+        Address
+        <textarea
+          name="CUSTADDRESS"
+          value={formData.CUSTADDRESS}
+          onChange={handleChange}
+          rows="3"
         />
       </label>
 
       <div className="modal-actions">
-        <button type="button" onClick={onCancel}>Cancel</button>
-        <button type="submit">Save</button>
+        <button type="button" onClick={onCancel}>
+          Cancel
+        </button>
+
+        <button type="submit">
+          Save
+        </button>
       </div>
     </form>
   );
