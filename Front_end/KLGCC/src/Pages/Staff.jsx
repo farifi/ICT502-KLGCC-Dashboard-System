@@ -12,26 +12,42 @@ import "./Pages CSS files/DefaultTheme.css";
 const Staff = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-    const closeSidebar = () => setIsSidebarOpen(false);
+    const closeSidebar  = () => setIsSidebarOpen(false);
 
-    const { staffList, fetchStaffList, updateStaff, deleteStaff, createStaff } = useStaff();
+    const {
+        staffList,
+        driverList,
+        fetchStaffList,
+        fetchDriverList,
+        updateStaff,
+        deleteStaff,
+        createStaff,
+    } = useStaff();
 
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState(null);
     const [isAddOpen, setIsAddOpen] = useState(false);
 
-    useEffect(() => {
+    const refreshAll = () => {
         fetchStaffList();
+        fetchDriverList();
+    };
+
+    useEffect(() => {
+        refreshAll();
     }, []);
 
-    const staffColumns = [
+    // ── Columns shared between all three tables ──────────────────────────────
+    const makeColumns = () => [
         { header: "ID",                  key: "STAFFID" },
         { header: "Name",                key: "STAFFNAME" },
         { header: "Email",               key: "STAFFEMAIL" },
         { header: "Phone No",            key: "STAFFPHONENUM" },
-        { header: "Identification Card", key: "STAFFIC" },
+        { header: "IC",                  key: "STAFFIC" },
         { header: "Position",            key: "STAFFPOSITION" },
         { header: "Supervisor",          key: "SUPERVISOR_NAME" },
+        { header: "Driver ID",           key: "DRIVERID" },       // null for non-drivers
+        { header: "License Type",        key: "LICENSETYPE" },    // null for non-drivers
         {
             header: "Actions",
             key: "actions",
@@ -49,50 +65,64 @@ const Staff = () => {
         setIsEditOpen(true);
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (!confirm("Are you sure you want to delete this staff?")) return;
-        deleteStaff(id);
+        await deleteStaff(id);
     };
 
     return (
         <div className="default-page">
             <div className="default">
                 <div className={`sidebar-overlay ${isSidebarOpen ? "open" : ""}`} onClick={closeSidebar}></div>
+
                 <div className={`sidebar-wrapper ${isSidebarOpen ? "open" : ""}`}>
                     <Sidebar closeSidebar={closeSidebar} />
                 </div>
+
                 <div className="default-main">
                     <Header toggleSidebar={toggleSidebar} />
+
                     <div className="table-header">
                         <button className="add-btn" onClick={() => setIsAddOpen(true)}>
                             + Add Staff
                         </button>
                     </div>
+
                     <div className="default-content">
-                        <Table title="Staff List" columns={staffColumns} data={staffList} />
+                        {/* ── All Staff ── */}
+                        <h2>All Staff</h2>
+                        <Table columns={makeColumns()} data={staffList} />
+
+                        {/* ── Drivers (Staff subtype with DRIVER row) ── */}
+                        <h2>Drivers</h2>
+                        <Table columns={makeColumns()} data={driverList} />
                     </div>
                 </div>
             </div>
 
+            {/* Edit Modal */}
             <Modal isOpen={isEditOpen} title="Edit Staff" onClose={() => setIsEditOpen(false)}>
                 <EditStaffForm
                     staff={selectedStaff}
                     staffList={staffList}
                     onCancel={() => setIsEditOpen(false)}
-                    onSave={(updatedStaff) => {
-                        updateStaff(updatedStaff);
+                    onSave={async (updatedStaff) => {
+                        await updateStaff(updatedStaff);
                         setIsEditOpen(false);
+                        refreshAll();
                     }}
                 />
             </Modal>
 
+            {/* Add Modal */}
             <Modal isOpen={isAddOpen} title="Create Staff" onClose={() => setIsAddOpen(false)}>
                 <AddStaffForm
                     staffList={staffList}
                     onCancel={() => setIsAddOpen(false)}
-                    onCreate={(newStaff) => {
-                        createStaff(newStaff);
+                    onCreate={async (newStaff) => {
+                        await createStaff(newStaff);
                         setIsAddOpen(false);
+                        refreshAll();
                     }}
                 />
             </Modal>

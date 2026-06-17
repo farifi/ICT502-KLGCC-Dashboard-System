@@ -3,10 +3,11 @@ const router = express.Router();
 const staffController = require('./controllers/staff.controller');
 const { authenticateToken } = require('./middleware/auth');
 
-// All staff routes require JWT authentication
-router.get("/staffList", authenticateToken, staffController.staffList);
-router.delete("/:id", authenticateToken, staffController.deleteStaff);
-router.put("/:id", authenticateToken, staffController.updateStaff);
+router.get("/staffList",    authenticateToken, staffController.staffList);
+router.get("/driverList",   authenticateToken, staffController.driverList);     
+router.get("/nonDriverList",authenticateToken, staffController.nonDriverList);  
 router.post("/createStaff", authenticateToken, staffController.createStaff);
+router.put("/:id",          authenticateToken, staffController.updateStaff);
+router.delete("/:id",       authenticateToken, staffController.deleteStaff);
 
 module.exports = router;

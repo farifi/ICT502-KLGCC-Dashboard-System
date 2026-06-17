@@ -1,8 +1,8 @@
 const { getConnection } = require("../config/db.js");
 const oracledb = require("oracledb");
 
-// GET ALL COURSES (PAGINATED)
-exports.getCourseList = async (req, res) => {
+// GET ALL PAYMENTS (PAGINATED)
+exports.getPaymentList = async (req, res) => {
   let conn;
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 5;
@@ -12,20 +12,20 @@ exports.getCourseList = async (req, res) => {
     conn = await getConnection();
     
     // Get total count for pagination calculation
-    const countResult = await conn.execute(`SELECT COUNT(*) AS TOTAL FROM COURSE`);
+    const countResult = await conn.execute(`SELECT COUNT(*) AS TOTAL FROM PAYMENT`);
     const totalRows = countResult.rows[0]?.TOTAL || countResult.rows[0]?.[0] || 0;
 
     const result = await conn.execute(
-      `SELECT COURSE_ID, COURSE_NAME, DESCRIPTION, HOLES, DIFFICULTY_LEVEL 
-       FROM COURSE 
-       ORDER BY COURSE_ID DESC
+      `SELECT PAYMENTID, PAYMENTAMOUNT, PAYMENTMETHOD, PAYMENTDATE, PAYMENTSTATUS 
+       FROM PAYMENT 
+       ORDER BY PAYMENTID DESC
        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`,
       { offset, limit },
       { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
 
     res.status(200).json({ 
-      courses: result.rows,
+      payments: result.rows,
       totalPages: Math.ceil(totalRows / limit) || 1
     });
   } catch (err) {
@@ -36,26 +36,25 @@ exports.getCourseList = async (req, res) => {
   }
 };
 
-// CREATE COURSE
-exports.createCourse = async (req, res) => {
-  const { COURSE_NAME, DESCRIPTION, HOLES, DIFFICULTY_LEVEL } = req.body;
+// CREATE PAYMENT
+exports.createPayment = async (req, res) => {
+  const { PAYMENTAMOUNT, PAYMENTMETHOD, PAYMENTDATE, PAYMENTSTATUS } = req.body;
   let conn;
   try {
     conn = await getConnection();
     
-    // Using 'b_' prefix for bind variables to avoid reserved word conflicts like 'DESC'
-    const sql = `INSERT INTO COURSE (COURSE_NAME, DESCRIPTION, HOLES, DIFFICULTY_LEVEL)
-                 VALUES (:b_name, :b_desc, :b_holes, :b_diff)`;
-    
-    const binds = {
-      b_name: COURSE_NAME,
-      b_desc: DESCRIPTION || null,
-      b_holes: Number(HOLES),
-      b_diff: DIFFICULTY_LEVEL
-    };
+    const sql = `INSERT INTO PAYMENT (PAYMENTID, PAYMENTAMOUNT, PAYMENTMETHOD, PAYMENTDATE, PAYMENTSTATUS)
+             VALUES (PAYMENT_SEQ.NEXTVAL, :b_amount, :b_method, TO_DATE(:b_date, 'YYYY-MM-DD'), :b_status)`;
+
+const binds = {
+  b_amount: Number(PAYMENTAMOUNT),
+  b_method: PAYMENTMETHOD,
+  b_date: PAYMENTDATE,
+  b_status: PAYMENTSTATUS
+};
 
     await conn.execute(sql, binds, { autoCommit: true });
-    res.status(201).json({ message: "Course created successfully" });
+    res.status(201).json({ message: "Payment created successfully" });
   } catch (err) {
     console.error("Add Error:", err.message);
     res.status(500).json({ message: "Database rejected the add", error: err.message });
@@ -64,36 +63,36 @@ exports.createCourse = async (req, res) => {
   }
 };
 
-// UPDATE COURSE
-exports.updateCourse = async (req, res) => {
+// UPDATE PAYMENT
+exports.updatePayment = async (req, res) => {
   const { id } = req.params;
-  const { COURSE_NAME, DESCRIPTION, HOLES, DIFFICULTY_LEVEL } = req.body;
+  const { PAYMENTAMOUNT, PAYMENTMETHOD, PAYMENTDATE, PAYMENTSTATUS } = req.body;
   let conn;
   try {
     conn = await getConnection();
     
-    const sql = `UPDATE COURSE 
-                 SET COURSE_NAME = :b_name, 
-                     DESCRIPTION = :b_desc, 
-                     HOLES = :b_holes, 
-                     DIFFICULTY_LEVEL = :b_diff
-                 WHERE COURSE_ID = :b_id`;
+    const sql = `UPDATE PAYMENT 
+                 SET PAYMENTAMOUNT = :b_amount, 
+                     PAYMENTMETHOD = :b_method, 
+                     PAYMENTDATE = TO_DATE(:b_date, 'YYYY-MM-DD'), 
+                     PAYMENTSTATUS = :b_status
+                 WHERE PAYMENTID = :b_id`;
     
     const binds = {
-      b_name: COURSE_NAME,
-      b_desc: DESCRIPTION || null,
-      b_holes: Number(HOLES),
-      b_diff: DIFFICULTY_LEVEL,
+      b_amount: Number(PAYMENTAMOUNT),
+      b_method: PAYMENTMETHOD,
+      b_date: PAYMENTDATE,
+      b_status: PAYMENTSTATUS,
       b_id: Number(id)
     };
 
     const result = await conn.execute(sql, binds, { autoCommit: true });
     
     if (result.rowsAffected === 0) {
-      return res.status(404).json({ message: "Course not found" });
+      return res.status(404).json({ message: "Payment not found" });
     }
     
-    res.json({ message: "Course updated successfully" });
+    res.json({ message: "Payment updated successfully" });
   } catch (err) {
     console.error("Update Error:", err.message);
     res.status(500).json({ message: "Update failed", error: err.message });
@@ -102,17 +101,17 @@ exports.updateCourse = async (req, res) => {
   }
 };
 
-// DELETE COURSE
-exports.deleteCourse = async (req, res) => {
+// DELETE PAYMENT
+exports.deletePayment = async (req, res) => {
   const { id } = req.params;
   let conn;
   try {
     conn = await getConnection();
     
-    const sql = `DELETE FROM COURSE WHERE COURSE_ID = :b_id`;
+    const sql = `DELETE FROM PAYMENT WHERE PAYMENTID = :b_id`;
     
     await conn.execute(sql, { b_id: Number(id) }, { autoCommit: true });
-    res.json({ message: "Course deleted successfully" });
+    res.json({ message: "Payment deleted successfully" });
   } catch (err) {
     console.error("Delete Error:", err.message);
     res.status(500).json({ message: "Delete failed", error: err.message });

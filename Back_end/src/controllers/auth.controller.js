@@ -54,8 +54,9 @@ exports.signup = async (req, res) => {
             });
 
         } else {
+            // ✅ Fixed: use CUST* column names matching actual schema
             const existing = await conn.execute(
-                `SELECT CUSTOMERID FROM CUSTOMER WHERE CUSTOMEREMAIL = :email`,
+                `SELECT CUSTID FROM CUSTOMER WHERE CUSTEMAIL = :email`,
                 { email },
                 { outFormat: oracledb.OUT_FORMAT_OBJECT }
             );
@@ -67,7 +68,7 @@ exports.signup = async (req, res) => {
             const passwordHash = await bcrypt.hash(password, 10);
 
             await conn.execute(
-                `INSERT INTO CUSTOMER (CUSTOMERID, CUSTOMERNAME, CUSTOMEREMAIL, CUSTOMERPHONENUM, CUSTOMERPASSWORD)
+                `INSERT INTO CUSTOMER (CUSTID, CUSTNAME, CUSTEMAIL, CUSTPHONENUM, CUSTPASSWORD)
                  VALUES (CUSTOMER_SEQ.NEXTVAL, :name, :email, :phone, :password)`,
                 {
                     name:     full_name,
@@ -119,9 +120,10 @@ exports.login = async (req, res) => {
                 { outFormat: oracledb.OUT_FORMAT_OBJECT }
             );
         } else {
+            // ✅ Fixed: use CUST* column names matching actual schema
             result = await conn.execute(
-                `SELECT CUSTOMERID, CUSTOMERNAME, CUSTOMEREMAIL, CUSTOMERPASSWORD
-                 FROM CUSTOMER WHERE CUSTOMEREMAIL = :email`,
+                `SELECT CUSTID, CUSTNAME, CUSTEMAIL, CUSTPASSWORD
+                 FROM CUSTOMER WHERE CUSTEMAIL = :email`,
                 { email },
                 { outFormat: oracledb.OUT_FORMAT_OBJECT }
             );
@@ -133,7 +135,8 @@ exports.login = async (req, res) => {
 
         const dbUser = result.rows[0];
 
-        const storedHash = isStaff ? dbUser.STAFFPASSWORD : dbUser.CUSTOMERPASSWORD;
+        // ✅ Fixed: reference correct column names for password comparison
+        const storedHash = isStaff ? dbUser.STAFFPASSWORD : dbUser.CUSTPASSWORD;
         const isMatch = await bcrypt.compare(password, storedHash);
 
         if (!isMatch) {
@@ -141,11 +144,11 @@ exports.login = async (req, res) => {
         }
 
         const user = {
-            id:       isStaff ? dbUser.STAFFID       : dbUser.CUSTOMERID,
-            email:    isStaff ? dbUser.STAFFEMAIL     : dbUser.CUSTOMEREMAIL,
-            name:     isStaff ? dbUser.STAFFNAME      : dbUser.CUSTOMERNAME,
-            position: isStaff ? dbUser.STAFFPOSITION  : null,
-            role:     isStaff ? 'staff'               : 'customer'
+            id:       isStaff ? dbUser.STAFFID    : dbUser.CUSTID,
+            email:    isStaff ? dbUser.STAFFEMAIL  : dbUser.CUSTEMAIL,
+            name:     isStaff ? dbUser.STAFFNAME   : dbUser.CUSTNAME,
+            position: isStaff ? dbUser.STAFFPOSITION : null,
+            role:     isStaff ? 'staff'             : 'customer'
         };
 
         const accessToken  = signAccessToken(user);

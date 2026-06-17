@@ -5,7 +5,7 @@ import Staff from './Pages/Staff';
 import Booking from './Pages/Booking';
 import Equipment from './Pages/Equipment';
 import TeeTime from './Pages/TeeTime';
-import Course from './Pages/Course';
+import Payment from './Pages/Payment';
 import Cart from './Pages/Cart';
 import ProtectedRoute from './ProtectedRoute';
 import Customer from './Pages/Customer';
@@ -21,7 +21,7 @@ function App() {
         <Route path="/booking" element={ <ProtectedRoute> <Booking /> </ProtectedRoute> }/> 
         <Route path="/equipment" element={ <ProtectedRoute> <Equipment /> </ProtectedRoute> }/> 
         <Route path="/tee-Time" element={ <ProtectedRoute> <TeeTime /> </ProtectedRoute> }/> 
-        <Route path="/course" element={ <ProtectedRoute> <Course /> </ProtectedRoute> }/> 
+        <Route path="/payment" element={ <ProtectedRoute> <Payment /> </ProtectedRoute> }/> 
         <Route path="/cart" element={ <ProtectedRoute> <Cart /> </ProtectedRoute> }/>
         <Route path="/customer" element={<ProtectedRoute> <Customer/> </ProtectedRoute>}/>
       </Routes>

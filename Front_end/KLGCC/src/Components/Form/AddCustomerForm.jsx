@@ -1,47 +1,40 @@
 import { useState } from "react";
-import "../Components CSS files/AddStaffForm.css"; 
+import "../Components CSS files/AddStaffForm.css";
 
 const AddCustomerForm = ({ onCancel, onCreate }) => {
   const [formData, setFormData] = useState({
-    FULL_NAME: "",
-    EMAIL: "",
-    PHONE_NUMBER: "",
-    MEMBERSHIP_TYPE: "" 
+    CUSTNAME: "",
+    CUSTPHONENUM: "",
+    CUSTIC: "",
+    CUSTEMAIL: "",
+    CUSTLICENSENO: "",
+    CUSTADDRESS: "",
+    CUSTPASSWORD: "",
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    onCreate({
-      FULL_NAME: formData.FULL_NAME,
-      EMAIL: formData.EMAIL,
-      PHONE_NUMBER: formData.PHONE_NUMBER,
-      MEMBERSHIP_TYPE: formData.MEMBERSHIP_TYPE || null 
-    });
+    onCreate(formData);
   };
 
   return (
     <form className="edit-staff-form" onSubmit={handleSubmit}>
       <label>
-        Full Name
+        Customer Name
         <input
-          name="FULL_NAME"
-          value={formData.FULL_NAME}
-          onChange={handleChange}
-          required
-        />
-      </label>
-
-      <label>
-        Email
-        <input
-          name="EMAIL"
-          value={formData.EMAIL}
+          type="text"
+          name="CUSTNAME"
+          value={formData.CUSTNAME}
           onChange={handleChange}
           required
         />
@@ -50,30 +43,72 @@ const AddCustomerForm = ({ onCancel, onCreate }) => {
       <label>
         Phone Number
         <input
-          name="PHONE_NUMBER"
-          value={formData.PHONE_NUMBER}
+          type="text"
+          name="CUSTPHONENUM"
+          value={formData.CUSTPHONENUM}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>
+        IC Number
+        <input
+          type="text"
+          name="CUSTIC"
+          value={formData.CUSTIC}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>
+        Email
+        <input
+          type="email"
+          name="CUSTEMAIL"
+          value={formData.CUSTEMAIL}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>
+        License Number
+        <input
+          type="text"
+          name="CUSTLICENSENO"
+          value={formData.CUSTLICENSENO}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>
+        Address
+        <textarea
+          name="CUSTADDRESS"
+          value={formData.CUSTADDRESS}
+          onChange={handleChange}
+          rows="3"
+        />
+      </label>
+
+      <label>
+        Password
+        <input
+          type="password"
+          name="CUSTPASSWORD"
+          value={formData.CUSTPASSWORD}
           onChange={handleChange}
           required
         />
       </label>
 
-      <label>
-        Membership Type (Optional)
-        <select
-          name="MEMBERSHIP_TYPE"
-          value={formData.MEMBERSHIP_TYPE}
-          onChange={handleChange}
-        >
-          <option value="">Walk-in</option>
-          <option value="GOLD">Gold</option>
-          <option value="SILVER">Silver</option>
-          <option value="BRONZE">Bronze</option>
-        </select>
-      </label>
-
       <div className="modal-actions">
-        <button type="button" onClick={onCancel}>Cancel</button>
-        <button type="submit">Add</button>
+        <button type="button" onClick={onCancel}>
+          Cancel
+        </button>
+
+        <button type="submit">
+          Add Customer
+        </button>
       </div>
     </form>
   );

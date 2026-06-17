@@ -1,279 +1,269 @@
-const { getConnection } = require("../config/db.js");
-const oracledb = require("oracledb");
+const { getConnection } = require('../config/db.js');
+const oracledb = require('oracledb');
+const bcrypt = require('bcryptjs');
 
+const CUSTOMER_SELECT = `
+    SELECT
+        c.CUSTID,
+        c.CUSTNAME,
+        c.CUSTEMAIL,
+        c.CUSTPHONENUM,
+        c.CUSTIC,
+        c.CUSTLICENSENO,
+        c.CUSTADDRESS
+    FROM CUSTOMER c
+`;
+
+const paginate = (page, limit) => {
+    const p      = Math.max(1, parseInt(page)  || 1);
+    const l      = Math.max(1, parseInt(limit) || 5);
+    const offset = (p - 1) * l;
+    return { l, offset };
+};
+
+// ─── All Customers (paginated) ───────────────────────────────────────────────
 exports.customerList = async (req, res) => {
-  let conn;
-  try {
-    conn = await getConnection();
+    const { l, offset } = paginate(req.query.page, req.query.limit);
+    let conn;
+    try {
+        conn = await getConnection();
 
-    const result = await conn.execute(
-      `SELECT CUSTOMER_ID, FULL_NAME, EMAIL, PHONE_NUMBER FROM CUSTOMER`,
-      [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
+        const countResult = await conn.execute(
+            `SELECT COUNT(*) AS TOTAL FROM CUSTOMER`,
+            [],
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+        const total      = countResult.rows[0].TOTAL;
+        const totalPages = Math.ceil(total / l);
 
-    res.status(200).json({ customers: result.rows });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error", error: err.message });
-  } finally {
-    if (conn) await conn.close();
-  }
-};
+        const result = await conn.execute(
+            `${CUSTOMER_SELECT}
+             ORDER BY c.CUSTID
+             OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`,
+            { offset, limit: l },
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
 
-exports.customerListPaged = async (req, res) => {
-  let conn;
-  const { page = 1, limit = 5 } = req.query;
-  const pageNum = parseInt(page, 10) || 1;
-  const limitNum = Math.min(parseInt(limit, 10) || 5, 100);
-  const offset = (pageNum - 1) * limitNum;
-
-  try {
-    conn = await getConnection();
-
-    const baseQuery = `
-      SELECT CUSTOMER_ID, FULL_NAME, EMAIL, PHONE_NUMBER
-      FROM CUSTOMER
-    `;
-
-    // Count rows
-    const countResult = await conn.execute(
-      `SELECT COUNT(*) AS TOTAL FROM (${baseQuery})`,
-      [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-
-    const totalRows = countResult.rows[0]?.TOTAL || 0;
-    const totalPages = Math.ceil(totalRows / limitNum) || 1;
-
-    // Fetch paged result
-    const result = await conn.execute(
-      `${baseQuery}
-       ORDER BY CUSTOMER_ID
-       OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`,
-      { offset, limit: limitNum },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-
-    res.status(200).json({
-      customers: result.rows,
-      totalPages
-    });
-
-  } catch (err) {
-    console.error("Paged Customer Error:", err);
-    res.status(500).json({ message: "Server error fetching paged customers", error: err.message });
-  } finally {
-    if (conn) await conn.close();
-  }
-};
-
-exports.memberCustomerList = async (req, res) => {
-  let conn;
-  const { page = 1, limit = 5 } = req.query;
-  const offset = (page - 1) * limit;
-
-  try {
-    conn = await getConnection();
-
-    const baseQuery = `
-      SELECT 
-        C.CUSTOMER_ID,
-        C.FULL_NAME,
-        C.EMAIL,
-        C.PHONE_NUMBER
-      FROM CUSTOMER C
-      JOIN MEMBER_CUSTOMER M
-        ON C.CUSTOMER_ID = M.CUSTOMER_ID
-    `;
-
-    const countResult = await conn.execute(
-      `SELECT COUNT(*) AS TOTAL FROM (${baseQuery})`,
-      [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-
-    const totalRows = countResult.rows[0]?.TOTAL || 0;
-    const totalPages = Math.ceil(totalRows / limit);
-
-    const result = await conn.execute(
-      `${baseQuery}
-       ORDER BY C.CUSTOMER_ID
-       OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`,
-      { offset, limit },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-
-    res.status(200).json({
-      customers: result.rows,
-      totalPages: totalPages || 1
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error", error: err.message });
-  } finally {
-    if (conn) await conn.close();
-  }
-};
-
-
-// ===============================
-// Walk-in Customer List (Paginated)
-// ===============================
-exports.walkinCustomerList = async (req, res) => {
-  let conn;
-  const { page = 1, limit = 5 } = req.query;
-  const offset = (page - 1) * limit;
-
-  try {
-    conn = await getConnection();
-
-    const baseQuery = `
-      SELECT 
-        C.CUSTOMER_ID,
-        C.FULL_NAME,
-        C.EMAIL,
-        C.PHONE_NUMBER
-      FROM CUSTOMER C
-      JOIN WALK_IN_CUSTOMER W
-        ON C.CUSTOMER_ID = W.CUSTOMER_ID
-    `;
-
-    const countResult = await conn.execute(
-      `SELECT COUNT(*) AS TOTAL FROM (${baseQuery})`,
-      [],
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-
-    const totalRows = countResult.rows[0]?.TOTAL || 0;
-    const totalPages = Math.ceil(totalRows / limit);
-
-    const result = await conn.execute(
-      `${baseQuery}
-       ORDER BY C.CUSTOMER_ID
-       OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`,
-      { offset, limit },
-      { outFormat: oracledb.OUT_FORMAT_OBJECT }
-    );
-
-    res.status(200).json({
-      customers: result.rows,
-      totalPages: totalPages || 1
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error", error: err.message });
-  } finally {
-    if (conn) await conn.close();
-  }
-};
-
-exports.addCustomer = async (req, res) => {
-  const { FULL_NAME, EMAIL, PHONE_NUMBER, MEMBERSHIP_TYPE } = req.body;
-  let conn;
-
-  try {
-    if (!FULL_NAME || !EMAIL || !PHONE_NUMBER) {
-      return res.status(400).json({ message: "Missing required fields" });
+        res.status(200).json({ customers: result.rows, totalPages, total });
+    } catch (err) {
+        console.error('customerList error:', err);
+        if (!res.headersSent) res.status(500).json({ message: "Server error", error: err.message });
+    } finally {
+        if (conn) try { await conn.close(); } catch (e) { console.error(e); }
     }
-
-    conn = await getConnection();
-
-    // Insert into CUSTOMER (auto IDENTITY)
-    const result = await conn.execute(
-      `INSERT INTO CUSTOMER (FULL_NAME, EMAIL, PHONE_NUMBER)
-       VALUES (:FULL_NAME, :EMAIL, :PHONE_NUMBER)
-       RETURNING CUSTOMER_ID INTO :id`,
-      {
-        FULL_NAME,
-        EMAIL,
-        PHONE_NUMBER,
-        id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
-      },
-      { autoCommit: false }
-    );
-
-    const customerId = result.outBinds.id[0];
-
-    // If new customer is a member
-    if (MEMBERSHIP_TYPE) {
-      await conn.execute(
-        `INSERT INTO MEMBER_CUSTOMER
-         (CUSTOMER_ID, MEMBERSHIP_ID, START_DATE, END_DATE, STATUS, MEMBERSHIP_TYPE)
-         VALUES (:cid, 'AUTO-' || :cid, SYSDATE, SYSDATE + 365, 'ACTIVE', :mtype)`,
-        { cid: customerId, mtype: MEMBERSHIP_TYPE },
-      );
-    } else {
-      await conn.execute(
-        `INSERT INTO WALK_IN_CUSTOMER (CUSTOMER_ID) VALUES (:cid)`,
-        { cid: customerId },
-      );
-    }
-
-    await conn.commit();
-
-    res.status(201).json({ message: "Customer created successfully" });
-
-  } catch (err) {
-    console.error("Add Customer:", err);
-    res.status(500).json({ message: "Server error adding customer", error: err.message });
-  } finally {
-    if (conn) await conn.close();
-  }
 };
 
+// ─── Member Customers (have license number) ──────────────────────────────────
+exports.memberList = async (req, res) => {
+    const { l, offset } = paginate(req.query.page, req.query.limit);
+    let conn;
+    try {
+        conn = await getConnection();
+
+        const countResult = await conn.execute(
+            `SELECT COUNT(*) AS TOTAL FROM CUSTOMER WHERE CUSTLICENSENO IS NOT NULL`,
+            [],
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+        const total      = countResult.rows[0].TOTAL;
+        const totalPages = Math.ceil(total / l);
+
+        const result = await conn.execute(
+            `${CUSTOMER_SELECT}
+             WHERE c.CUSTLICENSENO IS NOT NULL
+             ORDER BY c.CUSTID
+             OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`,
+            { offset, limit: l },
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+
+        res.status(200).json({ customers: result.rows, totalPages, total });
+    } catch (err) {
+        console.error('memberList error:', err);
+        if (!res.headersSent) res.status(500).json({ message: "Server error", error: err.message });
+    } finally {
+        if (conn) try { await conn.close(); } catch (e) { console.error(e); }
+    }
+};
+
+// ─── Walk-in Customers (no license number) ───────────────────────────────────
+exports.walkinList = async (req, res) => {
+    const { l, offset } = paginate(req.query.page, req.query.limit);
+    let conn;
+    try {
+        conn = await getConnection();
+
+        const countResult = await conn.execute(
+            `SELECT COUNT(*) AS TOTAL FROM CUSTOMER WHERE CUSTLICENSENO IS NULL`,
+            [],
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+        const total      = countResult.rows[0].TOTAL;
+        const totalPages = Math.ceil(total / l);
+
+        const result = await conn.execute(
+            `${CUSTOMER_SELECT}
+             WHERE c.CUSTLICENSENO IS NULL
+             ORDER BY c.CUSTID
+             OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`,
+            { offset, limit: l },
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+
+        res.status(200).json({ customers: result.rows, totalPages, total });
+    } catch (err) {
+        console.error('walkinList error:', err);
+        if (!res.headersSent) res.status(500).json({ message: "Server error", error: err.message });
+    } finally {
+        if (conn) try { await conn.close(); } catch (e) { console.error(e); }
+    }
+};
+
+// ─── Create Customer ─────────────────────────────────────────────────────────
+// Reads CUST* keys directly — matches AddCustomerForm field names
+exports.createCustomer = async (req, res) => {
+    const {
+        CUSTNAME,
+        CUSTEMAIL,
+        CUSTPHONENUM,
+        CUSTIC,
+        CUSTLICENSENO,
+        CUSTADDRESS,
+        CUSTPASSWORD,
+    } = req.body;
+
+    let conn;
+    try {
+        if (!CUSTNAME || !CUSTEMAIL || !CUSTPASSWORD) {
+            return res.status(400).json({ message: "Name, email and password are required" });
+        }
+
+        conn = await getConnection();
+
+        const existing = await conn.execute(
+            `SELECT CUSTID FROM CUSTOMER WHERE CUSTEMAIL = :email`,
+            { email: CUSTEMAIL },
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+        if (existing.rows.length > 0) {
+            return res.status(400).json({ message: "Email already exists" });
+        }
+
+        const passwordHash = await bcrypt.hash(CUSTPASSWORD, 10);
+
+        const result = await conn.execute(
+            `INSERT INTO CUSTOMER
+                (CUSTID, CUSTNAME, CUSTEMAIL, CUSTPHONENUM, CUSTIC, CUSTLICENSENO, CUSTADDRESS, CUSTPASSWORD)
+             VALUES
+                (CUSTOMER_SEQ.NEXTVAL, :name, :email, :phone, :ic, :licenseNo, :address, :password)
+             RETURNING CUSTID INTO :id`,
+            {
+                name:      CUSTNAME,
+                email:     CUSTEMAIL,
+                phone:     CUSTPHONENUM  || null,
+                ic:        CUSTIC        || null,
+                licenseNo: CUSTLICENSENO || null,
+                address:   CUSTADDRESS   || null,
+                password:  passwordHash,
+                id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
+            },
+            { autoCommit: true }
+        );
+
+        const newId = result.outBinds.id[0];
+
+        const customer = await conn.execute(
+            `${CUSTOMER_SELECT} WHERE c.CUSTID = :id`,
+            { id: newId },
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+
+        res.status(201).json({ customer: customer.rows[0] });
+    } catch (err) {
+        console.error('createCustomer error:', err);
+        if (!res.headersSent) res.status(500).json({ message: "Server error", error: err.message });
+    } finally {
+        if (conn) try { await conn.close(); } catch (e) { console.error(e); }
+    }
+};
+
+// ─── Update Customer ─────────────────────────────────────────────────────────
+// Reads CUST* keys directly — matches EditCustomerForm field names
 exports.updateCustomer = async (req, res) => {
-  const { id } = req.params;
-  const { FULL_NAME, EMAIL, PHONE_NUMBER } = req.body;
-  let conn;
+    const { id } = req.params;
+    const {
+        CUSTNAME,
+        CUSTEMAIL,
+        CUSTPHONENUM,
+        CUSTIC,
+        CUSTLICENSENO,
+        CUSTADDRESS,
+    } = req.body;
 
-  try {
-    if (!FULL_NAME || !EMAIL || !PHONE_NUMBER) {
-      return res.status(400).json({ message: "Missing fields" });
+    if (!id) return res.status(400).json({ message: 'Customer ID is required' });
+
+    let conn;
+    try {
+        conn = await getConnection();
+
+        const result = await conn.execute(
+            `UPDATE CUSTOMER SET
+                CUSTNAME      = :name,
+                CUSTEMAIL     = :email,
+                CUSTPHONENUM  = :phone,
+                CUSTIC        = :ic,
+                CUSTLICENSENO = :licenseNo,
+                CUSTADDRESS   = :address,
+             WHERE CUSTID = :id`,
+            {
+                name:      CUSTNAME,
+                email:     CUSTEMAIL,
+                phone:     CUSTPHONENUM  || null,
+                ic:        CUSTIC        || null,
+                licenseNo: CUSTLICENSENO || null,
+                address:   CUSTADDRESS   || null,
+                id,
+            },
+            { autoCommit: true }
+        );
+
+        if (result.rowsAffected === 0) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+
+        res.status(200).json({ message: "Customer updated successfully" });
+    } catch (err) {
+        console.error('updateCustomer error:', err);
+        if (!res.headersSent) res.status(500).json({ message: "Server error", error: err.message });
+    } finally {
+        if (conn) try { await conn.close(); } catch (e) { console.error(e); }
     }
-
-    conn = await getConnection();
-    await conn.execute(
-      `UPDATE CUSTOMER
-       SET FULL_NAME=:FULL_NAME,
-           EMAIL=:EMAIL,
-           PHONE_NUMBER=:PHONE_NUMBER
-       WHERE CUSTOMER_ID=:id`,
-      { FULL_NAME, EMAIL, PHONE_NUMBER, id },
-      { autoCommit: true }
-    );
-
-    res.status(200).json({ message: "Customer updated successfully" });
-
-  } catch (err) {
-    console.error("Update Customer:", err);
-    res.status(500).json({ message: "Server error updating customer", error: err.message });
-  } finally {
-    if (conn) await conn.close();
-  }
 };
 
-
+// ─── Delete Customer ─────────────────────────────────────────────────────────
 exports.deleteCustomer = async (req, res) => {
-  const { id } = req.params;
-  let conn;
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ message: 'Customer ID is required' });
 
-  try {
-    conn = await getConnection();
-    await conn.execute(
-      `DELETE FROM CUSTOMER WHERE CUSTOMER_ID=:id`,
-      { id },
-      { autoCommit: true }
-    );
+    let conn;
+    try {
+        conn = await getConnection();
 
-    res.status(200).json({ message: "Customer deleted successfully" });
+        const result = await conn.execute(
+            `DELETE FROM CUSTOMER WHERE CUSTID = :id`,
+            { id },
+            { autoCommit: true }
+        );
 
-  } catch (err) {
-    console.error("Delete Customer:", err);
-    res.status(500).json({ message: "Server error deleting customer", error: err.message });
-  } finally {
-    if (conn) await conn.close();
-  }
+        if (result.rowsAffected === 0) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+
+        res.status(200).json({ message: "Customer deleted successfully" });
+    } catch (err) {
+        console.error('deleteCustomer error:', err);
+        if (!res.headersSent) res.status(500).json({ message: "Server error", error: err.message });
+    } finally {
+        if (conn) try { await conn.close(); } catch (e) { console.error(e); }
+    }
 };
