@@ -17,10 +17,8 @@ const Staff = () => {
     const {
         staffList,
         driverList,
-        nonDriverList,
         fetchStaffList,
         fetchDriverList,
-        fetchNonDriverList,
         updateStaff,
         deleteStaff,
         createStaff,
@@ -33,7 +31,6 @@ const Staff = () => {
     const refreshAll = () => {
         fetchStaffList();
         fetchDriverList();
-        fetchNonDriverList();
     };
 
     useEffect(() => {
@@ -99,10 +96,6 @@ const Staff = () => {
                         {/* ── Drivers (Staff subtype with DRIVER row) ── */}
                         <h2>Drivers</h2>
                         <Table columns={makeColumns()} data={driverList} />
-
-                        {/* ── Non-Driver Staff ── */}
-                        <h2>Non-Driver Staff</h2>
-                        <Table columns={makeColumns()} data={nonDriverList} />
                     </div>
                 </div>
             </div>

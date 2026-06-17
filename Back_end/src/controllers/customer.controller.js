@@ -10,8 +10,7 @@ const CUSTOMER_SELECT = `
         c.CUSTPHONENUM,
         c.CUSTIC,
         c.CUSTLICENSENO,
-        c.CUSTADDRESS,
-        c.CUSTUSERNAME
+        c.CUSTADDRESS
     FROM CUSTOMER c
 `;
 
@@ -130,7 +129,6 @@ exports.createCustomer = async (req, res) => {
         CUSTIC,
         CUSTLICENSENO,
         CUSTADDRESS,
-        CUSTUSERNAME,
         CUSTPASSWORD,
     } = req.body;
 
@@ -155,9 +153,9 @@ exports.createCustomer = async (req, res) => {
 
         const result = await conn.execute(
             `INSERT INTO CUSTOMER
-                (CUSTID, CUSTNAME, CUSTEMAIL, CUSTPHONENUM, CUSTIC, CUSTLICENSENO, CUSTADDRESS, CUSTUSERNAME, CUSTPASSWORD)
+                (CUSTID, CUSTNAME, CUSTEMAIL, CUSTPHONENUM, CUSTIC, CUSTLICENSENO, CUSTADDRESS, CUSTPASSWORD)
              VALUES
-                (CUSTOMER_SEQ.NEXTVAL, :name, :email, :phone, :ic, :licenseNo, :address, :username, :password)
+                (CUSTOMER_SEQ.NEXTVAL, :name, :email, :phone, :ic, :licenseNo, :address, :password)
              RETURNING CUSTID INTO :id`,
             {
                 name:      CUSTNAME,
@@ -166,7 +164,6 @@ exports.createCustomer = async (req, res) => {
                 ic:        CUSTIC        || null,
                 licenseNo: CUSTLICENSENO || null,
                 address:   CUSTADDRESS   || null,
-                username:  CUSTUSERNAME  || null,
                 password:  passwordHash,
                 id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
             },
@@ -201,7 +198,6 @@ exports.updateCustomer = async (req, res) => {
         CUSTIC,
         CUSTLICENSENO,
         CUSTADDRESS,
-        CUSTUSERNAME,
     } = req.body;
 
     if (!id) return res.status(400).json({ message: 'Customer ID is required' });
@@ -218,7 +214,6 @@ exports.updateCustomer = async (req, res) => {
                 CUSTIC        = :ic,
                 CUSTLICENSENO = :licenseNo,
                 CUSTADDRESS   = :address,
-                CUSTUSERNAME  = :username
              WHERE CUSTID = :id`,
             {
                 name:      CUSTNAME,
@@ -227,7 +222,6 @@ exports.updateCustomer = async (req, res) => {
                 ic:        CUSTIC        || null,
                 licenseNo: CUSTLICENSENO || null,
                 address:   CUSTADDRESS   || null,
-                username:  CUSTUSERNAME  || null,
                 id,
             },
             { autoCommit: true }
