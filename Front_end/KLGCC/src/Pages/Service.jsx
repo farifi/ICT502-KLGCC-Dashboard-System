@@ -1,31 +1,27 @@
 import { useState, useEffect } from "react";
-import { useEquipment } from "../API Contexts Folder/EquipmentContext";
-import { useBooking } from "../API Contexts Folder/BookingContext";
+import { useService } from "../API Contexts Folder/ServiceContext";
 import Sidebar from "../Components/Sidebar.jsx";
 import Header from "../Components/Header.jsx";
 import Table from "../Components/Table.jsx";
 import Modal from "../Components/Modal.jsx";
-import EditEquipmentForm from "../Components/Form/EditEquipmentForm.jsx";
-import AddEquipmentForm from "../Components/Form/AddEquipmentForm.jsx";
+import EditServiceForm from "../Components/Form/EditServiceForm.jsx";
+import AddServiceForm from "../Components/Form/AddServiceForm.jsx";
 
-// ---------------- Pagination Component (Same as Customer) ----------------
+// ---------------- Pagination Component ----------------
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   if (totalPages <= 1) return null;
 
   const pages = [];
 
-  // Always show first page
   if (currentPage > 3) {
     pages.push(1);
     if (currentPage > 4) pages.push("...");
   }
 
-  // Middle sliding window
   for (let p = currentPage - 2; p <= currentPage + 2; p++) {
     if (p > 0 && p <= totalPages) pages.push(p);
   }
 
-  // Always show last page
   if (currentPage < totalPages - 2) {
     if (currentPage < totalPages - 3) pages.push("...");
     pages.push(totalPages);
@@ -51,74 +47,69 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   );
 };
 
-// ---------------- Equipment Page ----------------
-const Equipment = () => {
-  // --- State Management ---
+// ---------------- Service Page ----------------
+const Service = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [selectedEquipment, setSelectedEquipment] = useState(null);
+  const [selectedService, setSelectedService] = useState(null);
 
-  // --- Context Hooks ---
-  const { 
-    equipmentList, 
-    totalPages, 
-    fetchEquipmentList, 
-    updateEquipment, 
-    deleteEquipment, 
-    createEquipment 
-  } = useEquipment();
+  const {
+    serviceList,
+    totalPages,
+    fetchServiceList,
+    updateService,
+    deleteService,
+    createService
+  } = useService();
 
-  const { 
-    bookingList, 
-    fetchBookingListForEquipment 
-  } = useBooking();
-
-  // --- Side Effects ---
   useEffect(() => {
-    fetchEquipmentList(currentPage);
-    
-    if (fetchBookingListForEquipment) {
-      fetchBookingListForEquipment();
-    }
+    fetchServiceList(currentPage);
   }, [currentPage]);
 
-  // --- Actions ---
   const handleRefresh = () => {
-    fetchEquipmentList(currentPage);
+    fetchServiceList(currentPage);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this equipment?")) {
-      await deleteEquipment(id);
+    if (window.confirm("Are you sure you want to delete this service record?")) {
+      await deleteService(id);
       handleRefresh();
     }
   };
 
-  // --- Table Column Definitions ---
-  const equipmentColumns = [
-    { header: "ID", key: "EQUIPMENT_ID" },
-    { header: "Type", key: "EQUIPMENT_TYPE" },
-    { header: "Fee (RM)", key: "FEE", render: (row) => `RM ${Number(row.FEE).toFixed(2)}` },
-    { header: "Booking ID", key: "BOOKING_ID" },
-    { header: "Customer", key: "CUSTOMER_NAME" },
+  // Helper to format dates for display
+  const formatDate = (val) => {
+    if (!val) return "-";
+    const d = new Date(val);
+    return isNaN(d) ? "-" : d.toLocaleDateString("en-MY");
+  };
+
+  const serviceColumns = [
+    { header: "ID",          key: "SERVICEID" },
+    { header: "Car ID",      key: "CARID" },
+    { header: "Staff ID",    key: "STAFFID" },
+    { header: "Date",        key: "SERVICEDATE",     render: (row) => formatDate(row.SERVICEDATE) },
+    { header: "Description", key: "SERVICEDESCRIPTION" },
+    { header: "Cost (RM)",   key: "SERVICECOST",     render: (row) => `RM ${Number(row.SERVICECOST).toFixed(2)}` },
+    { header: "Next Date",   key: "SERVICENEXTDATE", render: (row) => formatDate(row.SERVICENEXTDATE) },
     {
       header: "Actions",
       key: "actions",
       render: (row) => (
         <div className="table-actions">
-          <button 
-            onClick={() => { 
-              setSelectedEquipment(row); 
-              setIsEditOpen(true); 
+          <button
+            onClick={() => {
+              setSelectedService(row);
+              setIsEditOpen(true);
             }}
           >
             ✏️
           </button>
-          <button 
-            className="delete" 
-            onClick={() => handleDelete(row.EQUIPMENT_ID)}
+          <button
+            className="delete"
+            onClick={() => handleDelete(row.SERVICEID)}
           >
             🗑
           </button>
@@ -136,68 +127,65 @@ const Equipment = () => {
 
         <div className="default-main">
           <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
-          
+
           <div className="table-header">
             <button className="add-btn" onClick={() => setIsAddOpen(true)}>
-              + Add Equipment
+              + Add Service
             </button>
           </div>
 
           <div className="default-content">
-            <h2>Equipment Management</h2>
-            <Table 
-              columns={equipmentColumns} 
-              data={equipmentList} 
+            <h2>Service Management</h2>
+            <Table
+              columns={serviceColumns}
+              data={serviceList}
             />
-            
-            {/* Standardized Pagination Component */}
+
             <div className="pagination-container">
-              <Pagination 
-                currentPage={currentPage} 
-                totalPages={totalPages} 
-                onPageChange={setCurrentPage} 
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal for Adding Equipment */}
-      <Modal 
-        isOpen={isAddOpen} 
-        title="Add New Equipment" 
+      {/* Modal for Adding Service */}
+      <Modal
+        isOpen={isAddOpen}
+        title="Add New Service"
         onClose={() => setIsAddOpen(false)}
       >
-        <AddEquipmentForm 
-          bookingList={bookingList} 
-          onCancel={() => setIsAddOpen(false)} 
-          onCreate={async (data) => { 
-            await createEquipment(data); 
-            setIsAddOpen(false); 
+        <AddServiceForm
+          onCancel={() => setIsAddOpen(false)}
+          onCreate={async (data) => {
+            await createService(data);
+            setIsAddOpen(false);
             handleRefresh();
-          }} 
+          }}
         />
       </Modal>
 
-      {/* Modal for Editing Equipment */}
-      <Modal 
-        isOpen={isEditOpen} 
-        title="Edit Equipment" 
+      {/* Modal for Editing Service */}
+      <Modal
+        isOpen={isEditOpen}
+        title="Edit Service"
         onClose={() => setIsEditOpen(false)}
       >
-        <EditEquipmentForm 
-          equipment={selectedEquipment} 
-          bookingList={bookingList}
-          onCancel={() => setIsEditOpen(false)} 
-          onSave={async (data) => { 
-            await updateEquipment(data); 
-            setIsEditOpen(false); 
+        <EditServiceForm
+          service={selectedService}
+          onCancel={() => setIsEditOpen(false)}
+          onSave={async (data) => {
+            await updateService(data);
+            setIsEditOpen(false);
             handleRefresh();
-          }} 
+          }}
         />
       </Modal>
     </div>
   );
 };
 
-export default Equipment;
+export default Service;

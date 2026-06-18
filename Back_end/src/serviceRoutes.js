@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
 
-const equipmentController = require("./controllers/equipment.controller");
+const serviceController = require("./controllers/service.controller");
 const { authenticateToken } = require("./middleware/auth");
 
-router.get("/", equipmentController.getAllEquipment);
-router.post("/", authenticateToken, equipmentController.createEquipment);
-router.put("/:id", authenticateToken, equipmentController.updateEquipment);
-router.delete("/:id", authenticateToken, equipmentController.deleteEquipment);
+router.get("/",      serviceController.getAllServices);
+router.post("/",     authenticateToken, serviceController.createService);
+router.put("/:id",   authenticateToken, serviceController.updateService);
+router.delete("/:id",authenticateToken, serviceController.deleteService);
 
 module.exports = router;

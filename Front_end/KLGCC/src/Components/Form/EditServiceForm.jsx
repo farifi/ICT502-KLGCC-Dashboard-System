@@ -1,64 +1,112 @@
 import { useState, useEffect } from "react";
 
-const EditEquipmentForm = ({ equipment, bookingList = [], onCancel, onSave }) => {
+const EditServiceForm = ({ service, onCancel, onSave }) => {
   const [formData, setFormData] = useState({
-    EQUIPMENT_TYPE: "",
-    FEE: "",
-    BOOKING_ID: "",
-    CUSTOMER_NAME: ""
+    CARID: "",
+    SERVICEDATE: "",
+    SERVICEDESCRIPTION: "",
+    SERVICECOST: "",
+    STAFFID: "",
+    SERVICENEXTDATE: ""
   });
 
   useEffect(() => {
-    if (equipment) {
-      const selected = bookingList.find(b => b.BOOKING_ID === equipment.BOOKING_ID);
+    if (service) {
+      // Format dates to yyyy-MM-dd for date input
+      const formatDate = (val) => {
+        if (!val) return "";
+        const d = new Date(val);
+        return isNaN(d) ? "" : d.toISOString().split("T")[0];
+      };
+
       setFormData({
-        EQUIPMENT_TYPE: equipment.EQUIPMENT_TYPE,
-        FEE: equipment.FEE,
-        BOOKING_ID: equipment.BOOKING_ID,
-        CUSTOMER_NAME: selected ? selected.CUSTOMER_NAME : equipment.CUSTOMER_NAME
+        CARID: service.CARID ?? "",
+        SERVICEDATE: formatDate(service.SERVICEDATE),
+        SERVICEDESCRIPTION: service.SERVICEDESCRIPTION ?? "",
+        SERVICECOST: service.SERVICECOST ?? "",
+        STAFFID: service.STAFFID ?? "",
+        SERVICENEXTDATE: formatDate(service.SERVICENEXTDATE)
       });
     }
-  }, [equipment, bookingList]);
+  }, [service]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === "BOOKING_ID") {
-      const selected = bookingList.find(b => b.BOOKING_ID === Number(value));
-      setFormData(prev => ({
-        ...prev,
-        BOOKING_ID: value,
-        CUSTOMER_NAME: selected ? selected.CUSTOMER_NAME : ""
-      }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave({
+      ...service,
+      CARID: Number(formData.CARID),
+      SERVICEDATE: formData.SERVICEDATE || null,
+      SERVICEDESCRIPTION: formData.SERVICEDESCRIPTION,
+      SERVICECOST: Number(formData.SERVICECOST),
+      STAFFID: formData.STAFFID ? Number(formData.STAFFID) : null,
+      SERVICENEXTDATE: formData.SERVICENEXTDATE || null
+    });
   };
 
   return (
-    <form className="edit-staff-form" onSubmit={(e) => {
-      e.preventDefault();
-      onSave({ 
-        ...equipment, 
-        ...formData, 
-        FEE: Number(formData.FEE), 
-        BOOKING_ID: Number(formData.BOOKING_ID) 
-      });
-    }}>
-      <label>Type
-        <input name="EQUIPMENT_TYPE" value={formData.EQUIPMENT_TYPE} onChange={handleChange} />
+    <form className="edit-staff-form" onSubmit={handleSubmit}>
+      <label>Car ID
+        <input
+          type="number"
+          name="CARID"
+          value={formData.CARID}
+          onChange={handleChange}
+          required
+        />
       </label>
-      <label>Fee
-        <input type="number" name="FEE" value={formData.FEE} onChange={handleChange} />
+
+      <label>Service Date
+        <input
+          type="date"
+          name="SERVICEDATE"
+          value={formData.SERVICEDATE}
+          onChange={handleChange}
+        />
       </label>
-      <label>Booking
-        <select name="BOOKING_ID" value={formData.BOOKING_ID} onChange={handleChange}>
-          {bookingList.map(b => (
-            <option key={b.BOOKING_ID} value={b.BOOKING_ID}>
-              ID: {b.BOOKING_ID} - {b.CUSTOMER_NAME}
-            </option>
-          ))}
-        </select>
+
+      <label>Description
+        <textarea
+          name="SERVICEDESCRIPTION"
+          value={formData.SERVICEDESCRIPTION}
+          onChange={handleChange}
+          rows={3}
+        />
       </label>
+
+      <label>Service Cost (RM)
+        <input
+          type="number"
+          step="0.01"
+          name="SERVICECOST"
+          value={formData.SERVICECOST}
+          onChange={handleChange}
+          required
+        />
+      </label>
+
+      <label>Staff ID
+        <input
+          type="number"
+          name="STAFFID"
+          value={formData.STAFFID}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>Next Service Date
+        <input
+          type="date"
+          name="SERVICENEXTDATE"
+          value={formData.SERVICENEXTDATE}
+          onChange={handleChange}
+        />
+      </label>
+
       <div className="modal-actions">
         <button type="button" onClick={onCancel}>Cancel</button>
         <button type="submit">Save</button>
@@ -67,4 +115,4 @@ const EditEquipmentForm = ({ equipment, bookingList = [], onCancel, onSave }) =>
   );
 };
 
-export default EditEquipmentForm;
+export default EditServiceForm;

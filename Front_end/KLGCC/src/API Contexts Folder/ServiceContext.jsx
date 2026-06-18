@@ -1,55 +1,54 @@
 import { createContext, useContext, useState } from "react";
 import API from "../Api.jsx";
 
-const EquipmentContext = createContext();
+const ServiceContext = createContext();
 
-export const EquipmentProvider = ({ children }) => {
-  const [equipmentList, setEquipmentList] = useState([]);
+export const ServiceProvider = ({ children }) => {
+  const [serviceList, setServiceList] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
 
-  const fetchEquipmentList = async (page = 1) => {
+  const fetchServiceList = async (page = 1) => {
     try {
-      const res = await API.get(`/api/equipment?page=${page}&limit=5`);
-      setEquipmentList(res.data.equipment || []);
+      const res = await API.get(`/api/service?page=${page}&limit=5`);
+      setServiceList(res.data.services || []);
       setTotalPages(res.data.totalPages || 1);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const createEquipment = async (equipment) => {
+  const createService = async (service) => {
     try {
-      // Hits router.post("/") in equipmentRoutes.js
-      await API.post("/api/equipment", equipment);
-      await fetchEquipmentList(1);
+      await API.post("/api/service", service);
+      await fetchServiceList(1);
     } catch (err) {
-      alert("Error: Check if the Booking ID exists.");
+      alert("Error: Check if the Car ID or Staff ID exists.");
     }
   };
 
-  const updateEquipment = async (equipment) => {
+  const updateService = async (service) => {
     try {
-      await API.put(`/api/equipment/${equipment.EQUIPMENT_ID}`, equipment);
-      await fetchEquipmentList();
+      await API.put(`/api/service/${service.SERVICEID}`, service);
+      await fetchServiceList();
     } catch (err) {
-      alert("Failed to update equipment");
+      alert("Failed to update service");
     }
   };
 
-  const deleteEquipment = async (id) => {
+  const deleteService = async (id) => {
     try {
-      await API.delete(`/api/equipment/${id}`);
-      await fetchEquipmentList();
+      await API.delete(`/api/service/${id}`);
+      await fetchServiceList();
     } catch (err) {
-      alert("Failed to delete equipment");
+      alert("Failed to delete service");
     }
   };
 
   return (
-    <EquipmentContext.Provider value={{ equipmentList, totalPages, fetchEquipmentList, createEquipment, updateEquipment, deleteEquipment }}>
+    <ServiceContext.Provider value={{ serviceList, totalPages, fetchServiceList, createService, updateService, deleteService }}>
       {children}
-    </EquipmentContext.Provider>
+    </ServiceContext.Provider>
   );
 };
 
-export const useEquipment = () => useContext(EquipmentContext);
+export const useService = () => useContext(ServiceContext);

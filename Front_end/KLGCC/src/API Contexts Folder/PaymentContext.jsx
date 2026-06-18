@@ -19,6 +19,8 @@ export const PaymentProvider = ({ children }) => {
       setCurrentPage(page);
     } catch (err) {
       console.error("Fetch failed:", err);
+      setPaymentList([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -28,7 +30,6 @@ export const PaymentProvider = ({ children }) => {
   const createPayment = async (paymentData) => {
     try {
       await API.post("/api/payment", paymentData);
-      // Refresh to the first page to see the newest entry
       await fetchPaymentList(1);
       return { success: true };
     } catch (err) {
@@ -46,7 +47,6 @@ export const PaymentProvider = ({ children }) => {
       if (!id) throw new Error("Missing PAYMENTID");
 
       await API.put(`/api/payment/${id}`, paymentData);
-      // Refresh the current page to show updated data
       await fetchPaymentList(currentPage);
       return { success: true };
     } catch (err) {
@@ -61,16 +61,18 @@ export const PaymentProvider = ({ children }) => {
   const deletePayment = async (id) => {
     try {
       await API.delete(`/api/payment/${id}`);
-      
-      // If the last item on the page is deleted, jump back one page
-      const nextPage = paymentList.length === 1 && currentPage > 1 
-        ? currentPage - 1 
-        : currentPage;
-        
+
+      const nextPage =
+        paymentList.length === 1 && currentPage > 1
+          ? currentPage - 1
+          : currentPage;
+
       await fetchPaymentList(nextPage);
+      return { success: true };
     } catch (err) {
       console.error("Delete failed:", err);
       alert("Could not delete payment. It might be linked to existing records.");
+      return { success: false };
     }
   };
 
@@ -85,7 +87,7 @@ export const PaymentProvider = ({ children }) => {
         createPayment,
         updatePayment,
         deletePayment,
-        setCurrentPage
+        setCurrentPage,
       }}
     >
       {children}

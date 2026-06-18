@@ -1,68 +1,57 @@
-import { useState } from "react";
-import "../Components CSS files/AddStaffForm.css";
+import { createContext, useContext, useState } from "react";
+import API from "../../Api.jsx";
 
-const AddEquipmentForm = ({ bookingList = [], onCancel, onCreate }) => {
-  const [formData, setFormData] = useState({
-    EQUIPMENT_TYPE: "",
-    FEE: "",
-    BOOKING_ID: "",
-    CUSTOMER_NAME: ""
-  });
+const ServiceContext = createContext();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "BOOKING_ID") {
-      const selected = bookingList.find(b => b.BOOKING_ID === Number(value));
-      setFormData(prev => ({
-        ...prev,
-        BOOKING_ID: value,
-        CUSTOMER_NAME: selected ? selected.CUSTOMER_NAME : ""
-      }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+export const ServiceProvider = ({ children }) => {
+  const [serviceList, setServiceList] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchServiceList = async (page = 1) => {
+    try {
+      const res = await API.get(`/api/service?page=${page}&limit=5`);
+      setServiceList(res.data.services || []);
+      setTotalPages(res.data.totalPages || 1);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onCreate({
-      EQUIPMENT_TYPE: formData.EQUIPMENT_TYPE,
-      FEE: Number(formData.FEE),
-      BOOKING_ID: formData.BOOKING_ID ? Number(formData.BOOKING_ID) : null
-    });
+  const createService = async (service) => {
+    try {
+      await API.post("/api/service", service);
+      await fetchServiceList(1);
+    } catch (err) {
+      alert("Error: Check if the Car ID or Staff ID exists.");
+    }
+  };
+
+  const updateService = async (service) => {
+    try {
+      await API.put(`/api/service/${service.SERVICEID}`, service);
+      await fetchServiceList();
+    } catch (err) {
+      alert("Failed to update service");
+    }
+  };
+
+  const deleteService = async (id) => {
+    try {
+      await API.delete(`/api/service/${id}`);
+      await fetchServiceList();
+    } catch (err) {
+      alert("Failed to delete service");
+    }
   };
 
   return (
-    <form className="edit-staff-form" onSubmit={handleSubmit}>
-      <label>Equipment Type
-        <input name="EQUIPMENT_TYPE" value={formData.EQUIPMENT_TYPE} onChange={handleChange} required />
-      </label>
-
-      <label>Fee (RM)
-        <input type="number" name="FEE" value={formData.FEE} onChange={handleChange} required />
-      </label>
-
-      <label>Booking
-        <select name="BOOKING_ID" value={formData.BOOKING_ID} onChange={handleChange} required>
-          <option value="">-- Select Booking --</option>
-          {bookingList.map(b => (
-            <option key={b.BOOKING_ID} value={b.BOOKING_ID}>
-              ID: {b.BOOKING_ID} - {b.CUSTOMER_NAME}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label>Customer Name
-        <input value={formData.CUSTOMER_NAME} readOnly style={{ backgroundColor: "#f3f3f3" }} />
-      </label>
-
-      <div className="modal-actions">
-        <button type="button" onClick={onCancel}>Cancel</button>
-        <button type="submit">Add Equipment</button>
-      </div>
-    </form>
+    <ServiceContext.Provider
+      value={{ serviceList, totalPages, fetchServiceList, createService, updateService, deleteService }}
+    >
+      {children}
+    </ServiceContext.Provider>
   );
 };
 
-export default AddEquipmentForm;
+const useService = () => useContext(ServiceContext);
+export default useService;

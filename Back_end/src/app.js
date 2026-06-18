@@ -5,12 +5,12 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./auth");
 const staffRoutes = require("./staffRoutes");
 const dashboardRoutes = require("./dashboardRoutes");
-const bookingRoutes = require("./bookingRoutes");
+const carRoutes = require("./carRoutes");
 const customerRoutes = require("./customerRoutes");
 const teeTimeRoutes = require("./teeTimeRoutes");
-const equipmentRoutes = require("./equipmentRoutes");
+const serviceRoutes = require("./serviceRoutes");
 const paymentRoutes = require("./paymentRoutes");
-const cartRoutes = require("./cartRoutes");
+const rentalRoutes = require("./rentalRoutes"); // ← fixed: was RentalRoutes
 
 const app = express();
 
@@ -24,7 +24,6 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Session is still used for now, but JWT will be the primary auth mechanism.
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "supersecret",
@@ -37,11 +36,11 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/staff", staffRoutes);
 app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/booking", bookingRoutes);
+app.use("/api/car", carRoutes);
 app.use("/api/customer", customerRoutes);
 app.use("/api/teetime", teeTimeRoutes);
-app.use("/api/equipment", equipmentRoutes);
+app.use("/api/service", serviceRoutes);
 app.use("/api/payment", paymentRoutes);
-app.use("/api/cart", cartRoutes);
+app.use("/api/rental", rentalRoutes); // ← now matches
 
 module.exports = app;
