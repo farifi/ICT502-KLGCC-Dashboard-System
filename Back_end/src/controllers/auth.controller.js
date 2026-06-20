@@ -18,7 +18,7 @@ exports.signup = async (req, res) => {
             return res.status(400).json({ message: "Name, email and password are required" });
         }
 
-        conn = await getConnection();
+        conn = await getConnection(); 
 
         const isStaff = email.endsWith('@klgcc.com');
 

@@ -9,11 +9,15 @@ export const CustomerProvider = ({ children }) => {
 
   const [customers, setCustomers] = useState([]);
 
-  const fetchCustomers = async (page = 1, setTotalPages = () => {}) => {
+  // NOTE: added an optional `limit` param (defaults to 5, same as before).
+  // Existing calls like fetchCustomers(page, setTotalPages) still work
+  // unchanged. Pass a larger limit (e.g. fetchCustomers(1, () => {}, 1000))
+  // when you need "all customers" for a dropdown instead of a paginated page.
+  const fetchCustomers = async (page = 1, setTotalPages = () => {}, limit = 5) => {
     if (!user) return;
     try {
       const res = await API.get("/api/customer/customerList", {
-        params: { page, limit: 5 },
+        params: { page, limit },
       });
       setCustomers(res.data.customers || []);
       setTotalPages(res.data.totalPages || 1);

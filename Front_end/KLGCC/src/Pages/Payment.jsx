@@ -82,13 +82,19 @@ const Payment = () => {
     setIsEditOpen(true);
   };
 
-  const pendingFailedList = paymentList.filter(
-    (p) => p.PAYMENTSTATUS === "Pending" || p.PAYMENTSTATUS === "Failed"
-  );
+  // NOTE: status comparisons are now case-insensitive.
+  // Previously this checked exact strings like "Pending" / "Failed",
+  // which silently returned an empty list if the DB actually stores
+  // "PENDING" / "FAILED" (or any other casing).
+  const pendingFailedList = paymentList.filter((p) => {
+    const status = (p.PAYMENTSTATUS || "").toUpperCase();
+    return status === "PENDING" || status === "FAILED";
+  });
 
-  const completedRefundedList = paymentList.filter(
-    (p) => p.PAYMENTSTATUS === "Completed" || p.PAYMENTSTATUS === "Refunded"
-  );
+  const completedRefundedList = paymentList.filter((p) => {
+    const status = (p.PAYMENTSTATUS || "").toUpperCase();
+    return status === "COMPLETED" || status === "REFUNDED";
+  });
 
   const paymentColumns = [
     { header: "ID", key: "PAYMENTID" },

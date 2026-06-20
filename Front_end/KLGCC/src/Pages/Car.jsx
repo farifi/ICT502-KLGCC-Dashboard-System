@@ -66,16 +66,21 @@ const Car = () => {
 
   const { createCar, updateCar, deleteCar } = useCar();
 
-  const fetchCars = async (status, page, setData, setTotalPages) => {
+  // NOTE: real CARSTATUS values in the DB are "Available", "Rented",
+  // "Maintenance" — there is no literal "Unavailable" value. So the
+  // "Unavailable" table is now powered by `exclude=Available`
+  // (i.e. "everything that isn't Available"), instead of asking the
+  // backend for a status that never exists.
+  const fetchCars = async (params, page, setData, setTotalPages) => {
     setLoading(true);
     try {
       const res = await API.get("/api/car/carList", {
-        params: { status, page, limit: 5 },
+        params: { ...params, page, limit: 5 },
       });
       setData(res.data.cars || []);
       setTotalPages(res.data.totalPages || 1);
     } catch (err) {
-      console.error(`Car fetch error (${status}):`, err);
+      console.error("Car fetch error:", err);
       setData([]);
       setTotalPages(1);
     } finally {
@@ -84,16 +89,16 @@ const Car = () => {
   };
 
   const refreshAllCars = () => {
-    fetchCars("AVAILABLE", availablePage, setAvailableCars, setAvailableTotalPages);
-    fetchCars("UNAVAILABLE", unavailablePage, setUnavailableCars, setUnavailableTotalPages);
+    fetchCars({ status: "Available" }, availablePage, setAvailableCars, setAvailableTotalPages);
+    fetchCars({ exclude: "Available" }, unavailablePage, setUnavailableCars, setUnavailableTotalPages);
   };
 
   useEffect(() => {
-    fetchCars("AVAILABLE", availablePage, setAvailableCars, setAvailableTotalPages);
+    fetchCars({ status: "Available" }, availablePage, setAvailableCars, setAvailableTotalPages);
   }, [availablePage]);
 
   useEffect(() => {
-    fetchCars("UNAVAILABLE", unavailablePage, setUnavailableCars, setUnavailableTotalPages);
+    fetchCars({ exclude: "Available" }, unavailablePage, setUnavailableCars, setUnavailableTotalPages);
   }, [unavailablePage]);
 
   const handleEdit = (car) => {

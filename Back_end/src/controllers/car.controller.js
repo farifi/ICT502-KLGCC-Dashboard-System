@@ -4,9 +4,15 @@ const oracledb = require("oracledb");
 const getOffset = (page = 1, limit = 5) => (page - 1) * limit;
 
 // GET CAR LIST (PAGINATED)
+// Supports two mutually exclusive filters:
+//   ?status=Available   -> CARSTATUS exactly matches (case-insensitive)
+//   ?exclude=Available  -> CARSTATUS is anything EXCEPT this value
+// "exclude" is what powers the "Unavailable Cars" table, since real
+// CARSTATUS values are Available / Rented / Maintenance (no literal
+// "Unavailable" row ever exists).
 exports.carList = async (req, res) => {
   let conn;
-  const { status, page = 1, limit = 5 } = req.query;
+  const { status, exclude, page = 1, limit = 5 } = req.query;
   const pageNum = parseInt(page, 10) || 1;
   const limitNum = Math.min(parseInt(limit, 10) || 5, 100);
 
@@ -17,8 +23,11 @@ exports.carList = async (req, res) => {
     const binds = {};
 
     if (status) {
-      baseQuery += ` WHERE CARSTATUS = :status`;
-      binds.status = status.toUpperCase();
+      baseQuery += ` WHERE UPPER(CARSTATUS) = UPPER(:status)`;
+      binds.status = status;
+    } else if (exclude) {
+      baseQuery += ` WHERE UPPER(CARSTATUS) != UPPER(:exclude)`;
+      binds.exclude = exclude;
     }
 
     const countResult = await conn.execute(
@@ -68,7 +77,7 @@ exports.addCar = async (req, res) => {
         colour: CARCOLOUR,
         seat: Number(CARSEAT),
         fee: Number(CARFEE),
-        status: CARSTATUS?.toUpperCase() || "AVAILABLE",
+        status: CARSTATUS || "Available",
       },
       { autoCommit: true }
     );
@@ -109,7 +118,7 @@ exports.carUpdate = async (req, res) => {
         colour: CARCOLOUR,
         seat: Number(CARSEAT),
         fee: Number(CARFEE),
-        status: CARSTATUS?.toUpperCase(),
+        status: CARSTATUS,
         id: Number(id),
       },
       { autoCommit: true }

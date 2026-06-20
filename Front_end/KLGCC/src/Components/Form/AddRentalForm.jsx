@@ -1,6 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useCustomer } from "../../API Contexts Folder/CustomerContext.jsx";
+import { useStaff } from "../../API Contexts Folder/StaffContext.jsx";
+import API from "../../Api.jsx";
 
 const RENTAL_STATUS_OPTIONS = ["Active", "Completed", "Cancelled", "Pending"];
+
+// Fallback label chains: if the expected name field doesn't exist on a
+// record, fall back to something readable instead of showing "undefined".
+// Adjust the field names here if they don't match your actual schema.
+const customerLabel = (c) =>
+  c.CUSTNAME || c.CUSTOMERNAME || c.NAME || `Customer #${c.CUSTID}`;
+
+const staffLabel = (s) => s.STAFFNAME || s.NAME || `Staff #${s.STAFFID}`;
+
+const carLabel = (c) => `${c.CARPLATENO} — ${c.CARBRAND} ${c.CARMODEL}`;
 
 const AddRentalForm = ({ onCancel, onCreate }) => {
   const [form, setForm] = useState({
@@ -17,25 +30,60 @@ const AddRentalForm = ({ onCancel, onCreate }) => {
     STAFFID:          ""
   });
 
+  const { customers, fetchCustomers } = useCustomer();
+  const { staffList, fetchStaffList } = useStaff();
+  const [availableCars, setAvailableCars] = useState([]);
+
+  useEffect(() => {
+    // Large limit so the dropdown effectively shows "all customers"
+    // rather than just one paginated page of 5.
+    fetchCustomers(1, () => {}, 1000);
+    fetchStaffList();
+
+    // ASSUMPTION: only cars with status "Available" can be assigned to
+    // a new rental. Remove the status param below if you want every car
+    // to show up regardless of status.
+    API.get("/api/car/carList", { params: { status: "Available", limit: 1000 } })
+      .then((res) => setAvailableCars(res.data.cars || []))
+      .catch((err) => console.error("Failed to load available cars:", err));
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await onCreate(form);
+    const success = await onCreate({
+      ...form,
+      CUSTID: Number(form.CUSTID),
+      CARID: Number(form.CARID),
+      STAFFID: form.STAFFID ? Number(form.STAFFID) : null,
+      PAYMENTID: form.PAYMENTID ? Number(form.PAYMENTID) : null,
+      RENTALTOTALCOST: form.RENTALTOTALCOST ? Number(form.RENTALTOTALCOST) : null,
+    });
     if (success) onCancel();
   };
 
   return (
     <form className="edit-staff-form" onSubmit={handleSubmit}>
-      <label>Customer ID
-        <input type="number" name="CUSTID" value={form.CUSTID} onChange={handleChange} required />
+      <label>Customer
+        <select name="CUSTID" value={form.CUSTID} onChange={handleChange} required>
+          <option value="">-- Select Customer --</option>
+          {customers.map((c) => (
+            <option key={c.CUSTID} value={c.CUSTID}>{customerLabel(c)}</option>
+          ))}
+        </select>
       </label>
 
-      <label>Car ID
-        <input type="number" name="CARID" value={form.CARID} onChange={handleChange} required />
+      <label>Car
+        <select name="CARID" value={form.CARID} onChange={handleChange} required>
+          <option value="">-- Select Car --</option>
+          {availableCars.map((c) => (
+            <option key={c.CARID} value={c.CARID}>{carLabel(c)}</option>
+          ))}
+        </select>
       </label>
 
       <label>Payment ID
@@ -75,8 +123,13 @@ const AddRentalForm = ({ onCancel, onCreate }) => {
         </select>
       </label>
 
-      <label>Staff ID
-        <input type="number" name="STAFFID" value={form.STAFFID} onChange={handleChange} />
+      <label>Staff
+        <select name="STAFFID" value={form.STAFFID} onChange={handleChange}>
+          <option value="">-- Select Staff --</option>
+          {staffList.map((s) => (
+            <option key={s.STAFFID} value={s.STAFFID}>{staffLabel(s)}</option>
+          ))}
+        </select>
       </label>
 
       <div className="modal-actions">

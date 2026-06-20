@@ -1,57 +1,97 @@
-import { createContext, useContext, useState } from "react";
-import API from "../../Api.jsx";
+import { useState } from "react";
 
-const ServiceContext = createContext();
+const AddServiceForm = ({ onCancel, onCreate }) => {
+  const [formData, setFormData] = useState({
+    CARID: "",
+    SERVICEDATE: "",
+    SERVICEDESCRIPTION: "",
+    SERVICECOST: "",
+    STAFFID: "",
+    SERVICENEXTDATE: ""
+  });
 
-export const ServiceProvider = ({ children }) => {
-  const [serviceList, setServiceList] = useState([]);
-  const [totalPages, setTotalPages] = useState(1);
-
-  const fetchServiceList = async (page = 1) => {
-    try {
-      const res = await API.get(`/api/service?page=${page}&limit=5`);
-      setServiceList(res.data.services || []);
-      setTotalPages(res.data.totalPages || 1);
-    } catch (err) {
-      console.error(err);
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const createService = async (service) => {
-    try {
-      await API.post("/api/service", service);
-      await fetchServiceList(1);
-    } catch (err) {
-      alert("Error: Check if the Car ID or Staff ID exists.");
-    }
-  };
-
-  const updateService = async (service) => {
-    try {
-      await API.put(`/api/service/${service.SERVICEID}`, service);
-      await fetchServiceList();
-    } catch (err) {
-      alert("Failed to update service");
-    }
-  };
-
-  const deleteService = async (id) => {
-    try {
-      await API.delete(`/api/service/${id}`);
-      await fetchServiceList();
-    } catch (err) {
-      alert("Failed to delete service");
-    }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onCreate({
+      CARID: Number(formData.CARID),
+      SERVICEDATE: formData.SERVICEDATE || null,
+      SERVICEDESCRIPTION: formData.SERVICEDESCRIPTION,
+      SERVICECOST: Number(formData.SERVICECOST),
+      STAFFID: formData.STAFFID ? Number(formData.STAFFID) : null,
+      SERVICENEXTDATE: formData.SERVICENEXTDATE || null
+    });
   };
 
   return (
-    <ServiceContext.Provider
-      value={{ serviceList, totalPages, fetchServiceList, createService, updateService, deleteService }}
-    >
-      {children}
-    </ServiceContext.Provider>
+    <form className="edit-staff-form" onSubmit={handleSubmit}>
+      <label>Car ID
+        <input
+          type="number"
+          name="CARID"
+          value={formData.CARID}
+          onChange={handleChange}
+          required
+        />
+      </label>
+
+      <label>Service Date
+        <input
+          type="date"
+          name="SERVICEDATE"
+          value={formData.SERVICEDATE}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>Description
+        <textarea
+          name="SERVICEDESCRIPTION"
+          value={formData.SERVICEDESCRIPTION}
+          onChange={handleChange}
+          rows={3}
+        />
+      </label>
+
+      <label>Service Cost (RM)
+        <input
+          type="number"
+          step="0.01"
+          name="SERVICECOST"
+          value={formData.SERVICECOST}
+          onChange={handleChange}
+          required
+        />
+      </label>
+
+      <label>Staff ID
+        <input
+          type="number"
+          name="STAFFID"
+          value={formData.STAFFID}
+          onChange={handleChange}
+        />
+      </label>
+
+      <label>Next Service Date
+        <input
+          type="date"
+          name="SERVICENEXTDATE"
+          value={formData.SERVICENEXTDATE}
+          onChange={handleChange}
+        />
+      </label>
+
+      <div className="modal-actions">
+        <button type="button" onClick={onCancel}>Cancel</button>
+        <button type="submit">Add Service</button>
+      </div>
+    </form>
   );
 };
 
-const useService = () => useContext(ServiceContext);
-export default useService;
+export default AddServiceForm;

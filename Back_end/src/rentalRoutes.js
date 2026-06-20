@@ -9,4 +9,4 @@ router.post("/",               authenticateToken, rentalController.createRental)
 router.put("/:id",             authenticateToken, rentalController.updateRental);
 router.delete("/:id",          authenticateToken, rentalController.deleteRental);
 
-module.exports = router;
+module.exports = router;''
