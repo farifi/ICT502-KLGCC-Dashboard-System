@@ -1,183 +1,113 @@
 const { getConnection } = require('../config/db.js');
 const oracledb = require('oracledb');
 
-exports.totalBookingsRevenue = async (req, res) => {
-    let conn;
-        try {
-            conn = await getConnection();
-    
-            const totalBookingsRevenue = await conn.execute(
-                `SELECT c.COURSE_NAME, SUM(b.TOTAL_PRICE) AS TOTAL_REVENUE
-                FROM BOOKING b
-                JOIN TEE_TIME t ON b.TEE_TIME_ID = t.TEE_TIME_ID
-                JOIN COURSE c ON t.COURSE_ID = c.COURSE_ID
-                GROUP BY c.COURSE_NAME
-                ORDER BY TOTAL_REVENUE DESC`, [],
-                { outFormat: oracledb.OUT_FORMAT_OBJECT }
-            );
-    
-            if (totalBookingsRevenue.rows.length === 0 ){
-                return res.status(200).json({ message: "No record currently in the database"});
-            }
-    
-            res.status(201).json({ totalBookingsRevenue: totalBookingsRevenue.rows });
-
-        } catch (err) {
-            console.error('Signup error:', err);
-            if (!res.headerSent) {
-                res.status(500).json({ message: "Server error", error: err.message });
-            }
-        } finally {
-            if (conn) {
-                try {
-                    await conn.close(); 
-                } catch (err) {
-                     console.error(err);
-                }
-            } 
-        }
-};
-
-exports.bookingTrend = async (req, res) => {
+exports.totalRentalRevenue = async (req, res) => {
     let conn;
     try {
-            conn = await getConnection();
-    
-            const bookingTrend = await conn.execute(
-                `SELECT b.BOOKING_DATE, COUNT(*) AS TOTAL_BOOKINGS
-                FROM BOOKING b
-                GROUP BY b.BOOKING_DATE
-                ORDER BY b.BOOKING_DATE`, [],
-                { outFormat: oracledb.OUT_FORMAT_OBJECT }
-            );
-    
-            if (bookingTrend.rows.length === 0 ){
-                return res.status(200).json({ message: "No record currently in the database"});
-            }
-    
-            res.status(201).json({ bookingTrend: bookingTrend.rows }); 
-
-        } catch (err) {
-            console.error('Signup error:', err);
-            if (!res.headerSent) {
-                res.status(500).json({ message: "Server error", error: err.message });
-            }
-        } finally {
-            if (conn) {
-                try {
-                    await conn.close(); 
-                } catch (err) {
-                     console.error(err);
-                }
-            } 
-        }
+        conn = await getConnection();
+        const result = await conn.execute(
+            `SELECT c.CARTYPE, SUM(r.RENTALTOTALCOST) AS TOTAL_REVENUE
+             FROM RENTAL r
+             JOIN CAR c ON r.CARID = c.CARID
+             GROUP BY c.CARTYPE
+             ORDER BY TOTAL_REVENUE DESC`,
+            [],
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+        res.status(200).json({ totalRentalRevenue: result.rows || [] });
+    } catch (err) {
+        console.error('Dashboard error (totalRentalRevenue):', err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    } finally {
+        if (conn) try { await conn.close(); } catch (e) { console.error(e); }
+    }
 };
 
-exports.averageBookingPricePerStaff = async (req, res) => {
+exports.rentalTrend = async (req, res) => {
     let conn;
     try {
-            conn = await getConnection();
-            const averageBookingPricePerStaff = await conn.execute(
-                `SELECT s.FULL_NAME AS STAFF_NAME, ROUND(AVG(b.TOTAL_PRICE), 2) AS AVG_BOOKING_PRICE
-                FROM BOOKING b
-                JOIN STAFF s ON b.STAFF_ID = s.STAFF_ID
-                GROUP BY s.FULL_NAME
-                ORDER BY AVG_BOOKING_PRICE DESC`, [],
-                { outFormat: oracledb.OUT_FORMAT_OBJECT }
-            );
-    
-            if (averageBookingPricePerStaff.rows.length === 0 ){
-                return res.status(200).json({ message: "No record currently in the database"});
-            }
-    
-            res.status(201).json({ averageBookingPricePerStaff: averageBookingPricePerStaff.rows });    
-
-        } catch (err) {
-            console.error('Signup error:', err);
-            if (!res.headerSent) {
-                res.status(500).json({ message: "Server error", error: err.message });
-            }
-        } finally {
-            if (conn) {
-                try {
-                    await conn.close(); 
-                } catch (err) {
-                     console.error(err);
-                }
-            } 
-        }
+        conn = await getConnection();
+        const result = await conn.execute(
+            `SELECT TO_CHAR(r.RENTALPICKUPDATE, 'DD Mon YYYY') AS RENTAL_DATE,
+                    COUNT(*) AS TOTAL_RENTALS
+             FROM RENTAL r
+             GROUP BY r.RENTALPICKUPDATE
+             ORDER BY r.RENTALPICKUPDATE`,
+            [],
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+        res.status(200).json({ rentalTrend: result.rows || [] });
+    } catch (err) {
+        console.error('Dashboard error (rentalTrend):', err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    } finally {
+        if (conn) try { await conn.close(); } catch (e) { console.error(e); }
+    }
 };
 
-exports.bookingCountByCourse = async (req, res) => {
+exports.averageRentalPricePerStaff = async (req, res) => {
     let conn;
-        try {
-            conn = await getConnection();
-    
-            const bookingCountByCourse = await conn.execute(
-                `SELECT 
-                    c.COURSE_NAME,
-                    COUNT(b.BOOKING_ID) AS TOTAL_BOOKINGS
-                FROM BOOKING b
-                JOIN TEE_TIME t ON b.TEE_TIME_ID = t.TEE_TIME_ID
-                JOIN COURSE c ON t.COURSE_ID = c.COURSE_ID
-                GROUP BY c.COURSE_NAME
-                ORDER BY TOTAL_BOOKINGS DESC`, [],
-                { outFormat: oracledb.OUT_FORMAT_OBJECT }
-            );
-    
-            if (bookingCountByCourse.rows.length === 0 ){
-                return res.status(200).json({ message: "No record currently in the database"});
-            }
-    
-            res.status(201).json({ bookingCountByCourse: bookingCountByCourse.rows });
-
-        } catch (err) {
-            console.error('Signup error:', err);
-            if (!res.headerSent) {
-                res.status(500).json({ message: "Server error", error: err.message });
-            }
-        } finally {
-            if (conn) {
-                try {
-                    await conn.close(); 
-                } catch (err) {
-                     console.error(err);
-                }
-            } 
-        }
+    try {
+        conn = await getConnection();
+        const result = await conn.execute(
+            `SELECT s.STAFFNAME, ROUND(AVG(r.RENTALTOTALCOST), 2) AS AVG_RENTAL_PRICE
+             FROM RENTAL r
+             LEFT JOIN STAFF s ON r.STAFFID = s.STAFFID
+             WHERE s.STAFFNAME IS NOT NULL
+             GROUP BY s.STAFFNAME
+             ORDER BY AVG_RENTAL_PRICE DESC`,
+            [],
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+        res.status(200).json({ averageRentalPricePerStaff: result.rows || [] });
+    } catch (err) {
+        console.error('Dashboard error (averageRentalPricePerStaff):', err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    } finally {
+        if (conn) try { await conn.close(); } catch (e) { console.error(e); }
+    }
 };
 
-exports.equipmentUsageCount = async (req, res) => {
+exports.rentalCountByCarType = async (req, res) => {
     let conn;
-        try {
-            conn = await getConnection();
-    
-            const equipmentUsage = await conn.execute(
-                `SELECT e.EQUIPMENT_TYPE, COUNT(*) AS USAGE_COUNT
-                FROM EQUIPMENT e
-                GROUP BY e.EQUIPMENT_TYPE
-                ORDER BY USAGE_COUNT DESC`, [],
-                { outFormat: oracledb.OUT_FORMAT_OBJECT }
-            );
-    
-            if (equipmentUsage.rows.length === 0 ){
-                return res.status(200).json({ message: "No record currently in the database"});
-            }
-    
-            res.status(201).json({ equipmentUsage: equipmentUsage.rows });
+    try {
+        conn = await getConnection();
+        const result = await conn.execute(
+            `SELECT c.CARTYPE, COUNT(r.RENTALID) AS TOTAL_RENTALS
+             FROM RENTAL r
+             JOIN CAR c ON r.CARID = c.CARID
+             GROUP BY c.CARTYPE
+             ORDER BY TOTAL_RENTALS DESC`,
+            [],
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+        res.status(200).json({ rentalCountByCarType: result.rows || [] });
+    } catch (err) {
+        console.error('Dashboard error (rentalCountByCarType):', err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    } finally {
+        if (conn) try { await conn.close(); } catch (e) { console.error(e); }
+    }
+};
 
-        } catch (err) {
-            console.error('Signup error:', err);
-            if (!res.headerSent) {
-                res.status(500).json({ message: "Server error", error: err.message });
-            }
-        } finally {
-            if (conn) {
-                try {
-                    await conn.close(); 
-                } catch (err) {
-                     console.error(err);
-                }
-            } 
-        }
+exports.serviceFrequency = async (req, res) => {
+    let conn;
+    try {
+        conn = await getConnection();
+        const result = await conn.execute(
+            `SELECT c.CARTYPE, COUNT(*) AS SERVICE_COUNT
+             FROM SERVICE sv
+             JOIN CAR c ON sv.CARID = c.CARID
+             GROUP BY c.CARTYPE
+             ORDER BY SERVICE_COUNT DESC`,
+            [],
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+        );
+        res.status(200).json({ serviceFrequency: result.rows || [] });
+    } catch (err) {
+        console.error('Dashboard error (serviceFrequency):', err);
+        res.status(500).json({ message: "Server error", error: err.message });
+    } finally {
+        if (conn) try { await conn.close(); } catch (e) { console.error(e); }
+    }
 };

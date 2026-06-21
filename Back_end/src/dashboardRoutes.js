@@ -3,10 +3,10 @@ const router = express.Router();
 const dashboardController = require('./controllers/dashboard.controller');
 const { authenticateToken } = require('./middleware/auth');
 
-router.get("/total-bookings-revenue", authenticateToken, dashboardController.totalBookingsRevenue);
-router.get("/booking-trends", authenticateToken, dashboardController.bookingTrend);   
-router.get("/average-booking-price-per-staff", authenticateToken,dashboardController.averageBookingPricePerStaff);
-router.get("/bookings-by-course", authenticateToken, dashboardController.bookingCountByCourse);
-router.get("/equipment-usage-count", authenticateToken, dashboardController.equipmentUsageCount);   
+router.get("/total-rental-revenue", authenticateToken, dashboardController.totalRentalRevenue);
+router.get("/rental-trends", authenticateToken, dashboardController.rentalTrend);
+router.get("/average-rental-price-per-staff", authenticateToken, dashboardController.averageRentalPricePerStaff);
+router.get("/rentals-by-car-type", authenticateToken, dashboardController.rentalCountByCarType);
+router.get("/service-frequency", authenticateToken, dashboardController.serviceFrequency);
 
 module.exports = router;

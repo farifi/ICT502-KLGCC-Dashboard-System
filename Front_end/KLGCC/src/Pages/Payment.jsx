@@ -101,7 +101,7 @@ const Payment = () => {
     {
       header: "Amount (RM)",
       key: "PAYMENTAMOUNT",
-      render: (row) => `RM ${Number(row.PAYMENTAMOUNT).toFixed(2)}`,
+      render: (row) => Number(row.PAYMENTAMOUNT).toFixed(2),
     },
     { header: "Method", key: "PAYMENTMETHOD" },
     { header: "Date", key: "PAYMENTDATE" },

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import './Components CSS files/Sidebar.css';
 import { useAuth } from "../API Contexts Folder/AuthContext";
-import logo from '../assets/logo_klgcc_black.png'
+import logo from '../assets/nikafleet-logo.png';
 
 const Sidebar = () => {
     const location = useLocation();

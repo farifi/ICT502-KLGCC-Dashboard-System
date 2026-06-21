@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import Sidebar from "../Components/Sidebar.jsx";
 import Header from "../Components/Header.jsx";
 import StatsCards from "../Components/statsCards.jsx";
@@ -16,31 +16,22 @@ const Dashboard = () => {
 
   const { dashboardData = {}, loading } = useDashboard();
   const {
-    totalBookingsRevenue = [],
-    bookingTrend = [],
-    averageBookingPricePerStaff = [],
-    bookingsByCourse = [],
-    equipmentUsageCount = []
+    totalRentalRevenue = [],
+    rentalTrend = [],
+    averageRentalPricePerStaff = [],
+    rentalCountByCarType = [],
+    serviceFrequency = []
   } = dashboardData;
-
-  // Format bookingTrend date for chart x-axis
-  const formattedBookingTrend = useMemo(() => {
-    return bookingTrend.map(item => {
-      const date = new Date(item.date);
-      const monthDay = `${date.getDate()} ${date.toLocaleString('default', { month: 'short' })}`;
-      return { ...item, month: monthDay };
-    });
-  }, [bookingTrend]);
-
-  // Top 6 courses for revenue chart
-  const H1Revenue = useMemo(() => totalBookingsRevenue.slice(0, 6), [totalBookingsRevenue]);
 
   if (loading) return <p>Loading dashboard...</p>;
 
   return (
     <div className="default-page">
       <div className="default">
-        <div className={`sidebar-overlay ${isSidebarOpen ? "open" : ""}`} onClick={closeSidebar}></div>
+        <div
+          className={`sidebar-overlay ${isSidebarOpen ? "open" : ""}`}
+          onClick={closeSidebar}
+        ></div>
         <div className={`sidebar-wrapper ${isSidebarOpen ? "open" : ""}`}>
           <Sidebar closeSidebar={closeSidebar} />
         </div>
@@ -49,70 +40,68 @@ const Dashboard = () => {
           <Header toggleSidebar={toggleSidebar} />
           <div className="default-content">
             <div className="dashboard-grid" style={{ minWidth: 0 }}>
-            {/* 1. Total Booking Revenue by Course - Pie Chart */}
-              <GlassCard className="dashboard-card dashboard-card--top1" style={{ minHeight: 260 }}>
-                <div className="chart-container">
-                  <PieChartComp
-                    data={totalBookingsRevenue}
-                    nameKey="course"
-                    valueKey="revenue"
-                    title="Total Booking Revenue by Course (RM)"
-                    colors={["#2d9cdb","#f5a623","#27ae60","#e74c3c","#8e44ad"]}
-                    description={"Shows each course's share of total booking revenue — useful to spot top revenue contributors and concentration."}
-                  />
-                </div>
-              </GlassCard>
 
-
-              {/* 2. Bookings Trend Over Time - Line Chart */}
-              <GlassCard className="dashboard-card dashboard-card--top2" style={{ minHeight: 260 }}>
-                <LineChartComp
-                  data={formattedBookingTrend}
-                  xKey="month"
-                  yKey="bookings"
-                  title="Bookings Trend Over Time"
-                  description={"Displays bookings over time (by month) to spot trends, spikes, and seasonality."}
+              {/* 1. Total Rental Revenue by Car Type - Pie Chart */}
+              <GlassCard className="dashboard-card dashboard-card--top1" style={{ minHeight: 300 }}>
+                <PieChartComp
+                  data={totalRentalRevenue}
+                  nameKey="carType"
+                  valueKey="revenue"
+                  title="Total Rental Revenue by Car Type (RM)"
+                  colors={["#2d9cdb", "#f5a623", "#27ae60", "#e74c3c", "#8e44ad"]}
+                  description="Shows each car type's share of total rental revenue."
                 />
               </GlassCard>
 
-              {/* 3. Equipment Usage Frequency - Bar Chart */}
-              <GlassCard className="dashboard-card dashboard-card--top3" style={{ minHeight: 260 }}>
-                <BarChartComp
-                  data={equipmentUsageCount}
-                  xKey="type"
+              {/* 2. Rentals Trend Over Time - Line Chart */}
+              <GlassCard className="dashboard-card dashboard-card--top2" style={{ minHeight: 300 }}>
+                <LineChartComp
+                  data={rentalTrend}
+                  xKey="date"
                   yKey="rentals"
-                  title="Equipment Usage Frequency"
+                  title="Rentals Trend Over Time"
+                  description="Displays rentals over time to spot trends and seasonality."
+                />
+              </GlassCard>
+
+              {/* 3. Service Frequency by Car Type - Bar Chart */}
+              <GlassCard className="dashboard-card dashboard-card--top3" style={{ minHeight: 300 }}>
+                <BarChartComp
+                  data={serviceFrequency}
+                  xKey="carType"
+                  yKey="services"
+                  title="Service Frequency by Car Type"
                   barColor="#2ecc71"
                   isDecimal={false}
-                  description={"Shows how often each equipment type is rented; helps track demand and maintenance scheduling."}
+                  description="Shows how often each car type undergoes service."
                 />
               </GlassCard>
 
-              {/* 4. Average Booking Price per Staff - Bar Chart */}
-              <GlassCard className="dashboard-card dashboard-card--main" style={{ minHeight: 300 }}>
+              {/* 4. Average Rental Price per Staff - Bar Chart */}
+              <GlassCard className="dashboard-card dashboard-card--main" style={{ minHeight: 320 }}>
                 <BarChartComp
-                  data={averageBookingPricePerStaff}
+                  data={averageRentalPricePerStaff}
                   xKey="staff"
                   yKey="price"
-                  title="Average Booking Price per Staff (RM)"
+                  title="Average Rental Price per Staff (RM)"
                   barColor="#2d9cdb"
-                  description={"Average booking price per staff; useful to compare revenue handled across staff members."}
+                  description="Average rental price handled per staff member."
                 />
               </GlassCard>
 
-              {/* 5. Booking Count by Course - Pie Chart */}
-              <GlassCard className="dashboard-card dashboard-card--side1" style={{ minHeight: 260 }}>
+              {/* 5. Rental Count by Car Type - Pie Chart */}
+              <GlassCard className="dashboard-card dashboard-card--side1" style={{ minHeight: 320 }}>
                 <PieChartComp
-                  data={bookingsByCourse}
-                  nameKey="course"
+                  data={rentalCountByCarType}
+                  nameKey="carType"
                   valueKey="count"
-                  title="Booking Count by Course"
-                  colors={["#2d9cdb","#f5a623","#27ae60","#e74c3c","#8e44ad"]}
-                  description={"Shows number of bookings per course to identify the most popular courses."}
+                  title="Rental Count by Car Type"
+                  colors={["#2d9cdb", "#f5a623", "#27ae60", "#e74c3c", "#8e44ad"]}
+                  description="Shows number of rentals per car type."
                 />
               </GlassCard>
-            </div>
 
+            </div>
           </div>
         </div>
       </div>

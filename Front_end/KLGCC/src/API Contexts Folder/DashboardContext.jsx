@@ -5,57 +5,56 @@ import { useAuth } from "./AuthContext";
 const DashboardContext = createContext();
 
 export const DashboardProvider = ({ children }) => {
-
-  const { user } = useAuth();
+  const { user, authLoading } = useAuth();
   const [dashboardData, setDashboardData] = useState({
-    totalBookingsRevenue: [],
-    bookingTrend: [],
-    averageBookingPricePerStaff: [],
-    bookingsByCourse: [],
-    equipmentUsageCount: []
+    totalRentalRevenue: [],
+    rentalTrend: [],
+    averageRentalPricePerStaff: [],
+    rentalCountByCarType: [],
+    serviceFrequency: []
   });
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) { setLoading(false); return; }
+
     const fetchDashboardData = async () => {
-      if (!user) return;
       try {
         const [
-          totalBookingsRevenueRes,
-          bookingTrendRes,
-          averageBookingPricePerStaffRes,
-          bookingsByCourseRes,
-          equipmentUsageRes
+          totalRentalRevenueRes,
+          rentalTrendRes,
+          avgRentalPriceRes,
+          rentalByCarTypeRes,
+          serviceFreqRes
         ] = await Promise.all([
-          API.get("/api/dashboard/total-bookings-revenue"),
-          API.get("/api/dashboard/booking-trends"),
-          API.get("/api/dashboard/average-booking-price-per-staff"),
-          API.get("/api/dashboard/bookings-by-course"),
-          API.get("/api/dashboard/equipment-usage-count")
+          API.get("/api/dashboard/total-rental-revenue"),
+          API.get("/api/dashboard/rental-trends"),
+          API.get("/api/dashboard/average-rental-price-per-staff"),
+          API.get("/api/dashboard/rentals-by-car-type"),
+          API.get("/api/dashboard/service-frequency")
         ]);
 
-        // Normalize backend keys to frontend chart keys
         setDashboardData({
-          totalBookingsRevenue: (totalBookingsRevenueRes.data.totalBookingsRevenue || []).map(item => ({
-            course: item.COURSE_NAME,
+          totalRentalRevenue: (totalRentalRevenueRes.data.totalRentalRevenue || []).map(item => ({
+            carType: item.CARTYPE,
             revenue: parseFloat(item.TOTAL_REVENUE)
           })),
-          bookingTrend: (bookingTrendRes.data.bookingTrend || []).map(item => ({
-            date: item.BOOKING_DATE,
-            bookings: parseInt(item.TOTAL_BOOKINGS, 10)
+          rentalTrend: (rentalTrendRes.data.rentalTrend || []).map(item => ({
+            date: item.RENTAL_DATE,   // already formatted string from Oracle
+            rentals: parseInt(item.TOTAL_RENTALS, 10)
           })),
-          averageBookingPricePerStaff: (averageBookingPricePerStaffRes.data.averageBookingPricePerStaff || []).map(item => ({
-            staff: item.STAFF_NAME,
-            price: parseFloat(item.AVG_BOOKING_PRICE)
+          averageRentalPricePerStaff: (avgRentalPriceRes.data.averageRentalPricePerStaff || []).map(item => ({
+            staff: item.STAFFNAME,    // confirmed column name
+            price: parseFloat(item.AVG_RENTAL_PRICE)
           })),
-          bookingsByCourse: (bookingsByCourseRes.data.bookingCountByCourse || []).map(item => ({
-            course: item.COURSE_NAME,
-            count: parseInt(item.TOTAL_BOOKINGS, 10)
+          rentalCountByCarType: (rentalByCarTypeRes.data.rentalCountByCarType || []).map(item => ({
+            carType: item.CARTYPE,
+            count: parseInt(item.TOTAL_RENTALS, 10)
           })),
-          equipmentUsageCount: (equipmentUsageRes.data.equipmentUsage || []).map(item => ({
-            type: item.EQUIPMENT_TYPE,
-            rentals: parseInt(item.USAGE_COUNT, 10)
+          serviceFrequency: (serviceFreqRes.data.serviceFrequency || []).map(item => ({
+            carType: item.CARTYPE,
+            services: parseInt(item.SERVICE_COUNT, 10)
           }))
         });
 
@@ -67,7 +66,7 @@ export const DashboardProvider = ({ children }) => {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [user, authLoading]);
 
   return (
     <DashboardContext.Provider value={{ dashboardData, loading }}>
