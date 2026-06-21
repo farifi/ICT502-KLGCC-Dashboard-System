@@ -83,7 +83,7 @@ const Dashboard = () => {
                   data={averageRentalPricePerStaff}
                   xKey="staff"
                   yKey="price"
-                  title="Average Rental Price per Staff (RM)"
+                  title="Average Rental Price Handled per Staff (RM)"
                   barColor="#2d9cdb"
                   description="Average rental price handled per staff member."
                 />

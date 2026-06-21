@@ -1,13 +1,12 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { 
     LayoutDashboard, 
-    ListTodo, 
-    Calendar as CalendarIcon, 
-    Package,  
-    Flag, 
-    Globe, 
-    Users, 
-    ShoppingCart 
+    ClipboardList, 
+    Car, 
+    UserCircle, 
+    KeyRound, 
+    CreditCard, 
+    Wrench
 } from "lucide-react";
 import './Components CSS files/Sidebar.css';
 import { useAuth } from "../API Contexts Folder/AuthContext";
@@ -19,7 +18,6 @@ const Sidebar = () => {
     const { logout } = useAuth();
 
     const isActive = (path) => {
-        // Exact match for root or dashboard
         if (path === "Dashboard" && (location.pathname === "/" || location.pathname === "/dashboard")) return true;
         if (path === "Staff" && (location.pathname === "/" || location.pathname === "/staff")) return true;
         if (path === "Tee Time" && (location.pathname === "/" || location.pathname === "/teeTime")) return true;
@@ -36,12 +34,12 @@ const Sidebar = () => {
 
     const mainMenuItems = [
         { label: "Dashboard", icon: LayoutDashboard },
-        { label: "Staff", icon: ListTodo },
-        { label: "Car", icon: CalendarIcon },
-        { label: "Customer", icon: Users },
-        { label: "Rental", icon: Package },
-        { label: "Payment", icon: Globe },
-        { label: "Service", icon: Flag },
+        { label: "Staff", icon: ClipboardList },
+        { label: "Car", icon: Car },
+        { label: "Customer", icon: UserCircle },
+        { label: "Rental", icon: KeyRound },
+        { label: "Payment", icon: CreditCard },
+        { label: "Service", icon: Wrench },
     ];
 
     const renderMenuItem = (item) => {
@@ -68,7 +66,7 @@ const Sidebar = () => {
     return (
         <div className="sidebar">
             <div className="logo-box">
-                <img src={logo} alt="Kuala Lumpur Golf & Country Club Logo" />
+                <img src={logo} alt="Nikafleet Logo" />
             </div>
 
             <div className="menu-section sidebar-main-menu">

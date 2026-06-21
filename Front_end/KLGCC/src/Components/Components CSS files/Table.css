@@ -1,21 +1,27 @@
 .table {
   padding: 0;
-  overflow: visible; /* Changed from hidden to visible */
+  overflow: visible;
   display: flex;
   flex-direction: column;
+  background: linear-gradient(160deg, #fdf6f0 0%, #f5ebe0 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(196, 140, 100, 0.2);
+  box-shadow: 0 4px 24px rgba(150, 90, 50, 0.08);
 }
 
 .table-container {
   overflow-x: auto;
   width: 100%;
-  /* Removed any height constraints if present */
 }
 
 .table h2 {
-  padding: 20px;
+  padding: 20px 24px;
   font-size: 20px;
   font-weight: 700;
   margin: 0;
+  color: #6b3a2a;
+  letter-spacing: 0.01em;
+  border-bottom: 1px solid rgba(196, 140, 100, 0.18);
 }
 
 table {
@@ -25,71 +31,90 @@ table {
 
 th {
   padding: 14px 20px;
-  font-size: 13px;
-  color: #888;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #b07050;
   text-align: left;
+  background: rgba(210, 150, 100, 0.08);
 }
 
 td {
   padding: 16px 20px;
   font-size: 14px;
+  color: #4a2e1e;
 }
 
 tr:not(:last-child) {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(196, 140, 100, 0.12);
 }
 
-/* Performance bar */
+tbody tr {
+  transition: background 0.2s ease;
+}
+
+tbody tr:hover {
+  background: rgba(210, 150, 100, 0.08);
+}
+
+/* Progress bar */
 .progress-bar {
   height: 8px;
-  background: rgba(0, 0, 0, 0.08);
+  background: rgba(180, 120, 80, 0.15);
   border-radius: 6px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #f2994a, #f2c94c);
+  background: linear-gradient(90deg, #c1440e, #e07b39, #f2c078);
   border-radius: 6px;
 }
 
+/* Action buttons */
 .table-actions {
   display: flex;
-  gap: 10px; /* spacing between buttons */
+  gap: 8px;
 }
 
 .table-actions button {
-  padding: 6px 14px;
-  border: none;
-  border-radius: 12px;
+  padding: 6px 16px;
+  border: 1.5px solid rgba(180, 110, 70, 0.35);
+  border-radius: 10px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1); /* default frosted glass */
+  color: #7a3e20;
+  background: rgba(245, 220, 195, 0.6);
   backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(150, 80, 40, 0.08);
 }
 
 .table-actions button:hover {
-  background: rgba(255, 255, 255, 0.2); /* hover frosted */
+  background: rgba(230, 180, 140, 0.75);
+  border-color: rgba(180, 110, 70, 0.55);
+  color: #5a2a10;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 16px rgba(150, 80, 40, 0.15);
 }
 
 .table-actions button:active {
   transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(150, 80, 40, 0.1);
 }
 
-/* Delete button variant */
+/* Delete button */
 .table-actions button.delete {
-  background: rgba(109, 22, 22, 0.488); /* soft red glass */
-  color: #fff;
+  background: rgba(180, 60, 30, 0.12);
+  border-color: rgba(180, 60, 30, 0.3);
+  color: #a83220;
 }
 
 .table-actions button.delete:hover {
-  background: rgb(197, 10, 10); /* slightly stronger red on hover */
+  background: rgba(193, 68, 14, 0.8);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(180, 60, 30, 0.25);
 }

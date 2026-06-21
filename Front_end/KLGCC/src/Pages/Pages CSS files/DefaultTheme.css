@@ -2,20 +2,14 @@
   height: 100vh;
   padding: 24px;
   overflow: hidden;
-
-  background: linear-gradient(
-    135deg,
-    #e6bfa3 0%,
-    #e2e2e2 45%,
-    #f0f0f0 100%
-  );
+  background: #f8f8f8;
 }
 
 .default {
-  height: 100%; /* take full height of .app */
+  height: 100%;
   display: grid;
   grid-template-columns: 260px 1fr;
-  grid-template-rows: 1fr; /* Force row to take available height, enabling scroll in child */
+  grid-template-rows: 1fr;
   gap: 24px;
   overflow: hidden;
   position: relative;
@@ -32,7 +26,7 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(4px);
   z-index: 99;
   opacity: 0;
@@ -49,21 +43,20 @@
     gap: 16px;
   }
 
-  /* Hide sidebar by default on mobile */
   .sidebar-wrapper {
     position: absolute;
     left: -280px;
     top: 0;
     bottom: 0;
     width: 260px;
-    background: rgba(255, 255, 255, 0.9); /* Opaque background for readability */
+    background: #ffffff;
     backdrop-filter: blur(20px);
     z-index: 100;
     padding: 20px;
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
     transition: left 0.3s ease;
-    border-right: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 16px 16px 16px 16px;
+    border-right: 1px solid #eeeeee;
+    border-radius: 0 20px 20px 0;
     overflow-x: visible;
     overflow-y: auto;
   }
@@ -78,57 +71,52 @@
   }
 }
 
-/* THIS is the container for Header + Content */
 .default-main {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  height: 100%; /* Ensure it fills the grid cell */
-  min-height: 0; 
-  overflow: hidden; /* Prevent main container from scrolling */
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
-/* Scrollable content area */
 .default-content {
   flex: 1;
-  overflow-y: overlay; /* Allows scrollbar to sit on top of content (Webkit only) */
+  overflow-y: overlay;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding-right: 8px; /* Space for scrollbar */
-  padding-bottom: 24px; /* Bottom spacing */
-  
+  padding-right: 8px;
+  padding-bottom: 24px;
+
   scrollbar-width: thin;
-  scrollbar-color: transparent transparent; /* Hide by default for Firefox */
+  scrollbar-color: transparent transparent;
   transition: scrollbar-color 0.3s ease;
 }
 
-/* Show scrollbar on hover */
 .default-content:hover {
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
-/* Webkit Scrollbar Styling (Chrome, Edge, Safari) */
 .default-content::-webkit-scrollbar {
   width: 6px;
   background: transparent;
 }
 
 .default-content::-webkit-scrollbar-thumb {
-  background: transparent; /* Hidden by default */
+  background: transparent;
   border-radius: 999px;
   transition: background 0.3s ease;
 }
 
 .default-content:hover::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2); /* Visible on hover */
+  background: rgba(0, 0, 0, 0.15);
 }
 
 .default-content::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Dashboard layout similar to reference image */
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -153,8 +141,9 @@
       "side2"
       "txn";
   }
+
   .chart-container {
-    aspect-ratio: auto; /* let it shrink naturally */
+    aspect-ratio: auto;
     min-height: 200px;
   }
 }
@@ -166,22 +155,22 @@
 }
 
 .chart-container {
-  flex: 1; /* fill the card */
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 8px;
   width: 100%;
-} 
+}
 
 .chart-wrapper {
   width: 100%;
   display: flex;
-  flex: 1; /* fill available vertical space inside the card */
-  min-height: 160px; /* ensure a sensible minimum */
+  flex: 1;
+  min-height: 160px;
   position: relative;
-  overflow: visible; /* allow tooltips to extend outside the chart area */
+  overflow: visible;
 }
 
 .chart-wrapper svg {
@@ -191,7 +180,6 @@
   z-index: 0;
 }
 
-/* Ensure Recharts tooltips appear above other elements */
 .recharts-tooltip-wrapper {
   position: relative;
   z-index: 9999 !important;
@@ -200,18 +188,11 @@
 
 .chart-description {
   margin-top: 8px;
-  font-size: 0.9rem;
-  color: #555;
+  font-size: 0.875rem;
+  color: #999;
   text-align: center;
   position: relative;
   z-index: 1;
-}
-
-.chart-description {
-  margin-top: 8px;
-  font-size: 0.9rem;
-  color: #555;
-  text-align: center;
 }
 
 .dashboard-card--top1 { grid-area: top1; }
@@ -220,60 +201,73 @@
 .dashboard-card--main { grid-area: main; }
 .dashboard-card--side1 { grid-area: side1; }
 .dashboard-card--side2 { grid-area: side2; }
-.dashboard-card--txn { grid-area: txn; }
+.dashboard-card--txn  { grid-area: txn;  }
 
 .add-btn {
-  padding: 10px 18px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.1); /* frosted glass */
-  backdrop-filter: blur(10px);
-  color: #000000;
+  padding: 10px 22px;
+  border-radius: 12px;
+  border: 1.5px solid #e0e0e0;
+  background: #ffffff;
+  color: #222222;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .add-btn:hover {
-  background: rgba(128, 128, 128, 0.307);
-  box-shadow: 6px 6px 20px rgba(103, 103, 103, 0.245);
+  background: #f5f5f5;
+  border-color: #cccccc;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
-  color: #fffcfc;
+  color: #000000;
 }
 
 .add-btn:active {
   transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .pagination {
   display: flex;
   gap: 6px;
   margin: 8px 0 15px;
+  align-items: center;
 }
 
 .pagination button {
-  padding: 4px 8px;
-  border: 1px solid #aaa;
-  border-radius: 4px;
-  background: white;
+  padding: 5px 10px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #555555;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination button:hover {
+  background: #f5f5f5;
+  border-color: #cccccc;
+  color: #111111;
 }
 
 .pagination button.active {
-  background: #007bff;
-  border-color: #007bff;
-  color: white;
+  background: #222222;
+  border-color: #222222;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .pagination button:disabled {
-  opacity: 0.6;
+  opacity: 0.4;
   cursor: default;
 }
 
 .pagination .dots {
   padding: 4px 6px;
-  color: #aaa;
+  color: #bbbbbb;
+  font-size: 13px;
 }

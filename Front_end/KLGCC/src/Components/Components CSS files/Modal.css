@@ -1,7 +1,8 @@
+/* Modal */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(60, 30, 10, 0.35);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -11,35 +12,54 @@
 }
 
 .modal-card {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 16px;
-  padding: 24px;
+  background: linear-gradient(155deg, #fdf6f0 0%, #f5e8d8 100%);
+  border-radius: 20px;
+  padding: 28px;
   width: 420px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  border: 1px solid rgba(196, 140, 100, 0.25);
+  box-shadow:
+    0 20px 48px rgba(100, 50, 20, 0.18),
+    0 4px 12px rgba(100, 50, 20, 0.1);
   position: relative;
   animation: scaleIn 0.2s ease;
 }
 
 .modal-title {
   margin-bottom: 16px;
+  color: #6b3a2a;
+  font-weight: 700;
+  font-size: 18px;
 }
 
 .modal-close {
   position: absolute;
-  top: 12px;
-  right: 14px;
-  background: none;
-  border: none;
-  font-size: 22px;
+  top: 14px;
+  right: 16px;
+  background: rgba(210, 150, 100, 0.15);
+  border: 1px solid rgba(196, 140, 100, 0.25);
+  border-radius: 8px;
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  color: #7a4428;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: rgba(193, 68, 14, 0.15);
+  color: #a83220;
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 @keyframes scaleIn {
-  from { transform: scale(0.95); }
-  to { transform: scale(1); }
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
 }

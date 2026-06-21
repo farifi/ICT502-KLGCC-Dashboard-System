@@ -1,16 +1,15 @@
 .sidebar {
-  /* Removed strong backdrop/box-shadow to match the cleaner look of the image */
-  /* If the image sidebar is truly transparent/integrated, we can remove background entirely or keep it very subtle */
-  /* background: rgba(255, 255, 255, 0.45);  <-- Removed or made much lighter */
-  
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* keep content spread without needing scroll */
+  justify-content: space-between;
   gap: 12px;
   padding: 0;
-  height: 100vh; /* exactly viewport height */
+  height: 100vh;
   overflow-y: auto;
   overflow-x: visible;
+  background: #ffffff;
+  border-right: 1px solid #eeeeee;
+  border-radius: 20px;
 }
 
 .sidebar .logo-box {
@@ -39,21 +38,22 @@
   display: block !important;
 }
 
-/* Responsive logo sizing for small screens - sidebar-wrapper is 260px wide with 20px padding = 220px available */
 @media (max-width: 1024px) {
   .sidebar {
     padding: 0;
     overflow-y: auto;
     overflow-x: visible;
+    border-right: none;
+    border-radius: 0 20px 20px 0;
   }
-  
+
   .sidebar .logo-box {
     padding: 0 !important;
     margin-bottom: 20px;
     width: 100% !important;
     overflow: visible !important;
   }
-  
+
   .sidebar .logo-box img {
     width: 100% !important;
     max-width: 100% !important;
@@ -73,19 +73,19 @@
 
 .menu-header {
   padding-left: 18px;
-  color: #888; /* or slightly warmer grey/brown from image */
-  font-size: 12px;
+  color: #bbbbbb;
+  font-size: 11px;
   text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 600;
   margin: 0 0 8px 0;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .sidebar ul {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   padding: 0;
   margin: 0;
 }
@@ -94,61 +94,67 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 18px;
-  border-radius: 12px; /* Use rounded corners but not full pill unless requested, image looks rounded rect */
+  padding: 11px 18px;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: 500;
-  color: #7a7a7a;
+  color: #aaaaaa;
   transition: all 0.2s ease;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .sidebar li:hover {
-  background: rgba(0, 0, 0, 0.04);
-  color: #333;
+  background: #f5f5f5;
+  color: #222222;
 }
 
-/* Active State Styling */
+/* Active state */
 .sidebar li.active {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.2));
-  backdrop-filter: blur(10px);
-  color: #1a1a2e; /* Dark navy/black text */
+  background: #f5f5f5;
+  color: #111111;
   font-weight: 700;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #eeeeee;
 }
 
-/* Remove the old vertical bar */
 .sidebar li.active::before {
   content: none;
 }
 
 .sidebar-icon {
+  opacity: 0.5;
+}
+
+.sidebar li:hover .sidebar-icon {
   opacity: 0.8;
 }
 
 .sidebar li.active .sidebar-icon {
   opacity: 1;
-  color: #1a1a2e; /* Match text color */
+  color: #111111;
 }
 
+/* Logout button */
 .sidebar-logout-button {
   margin: 16px 18px 12px 18px;
-  margin-top: auto; /* push to bottom */
+  margin-top: auto;
   padding: 10px 14px;
   border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.6);
-  color: #1a1a2e;
+  border: 1.5px solid #eeeeee;
+  background: #ffffff;
+  color: #444444;
   font-weight: 600;
   cursor: pointer;
   font-size: 14px;
   text-align: center;
-  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .sidebar-logout-button:hover {
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  background: #f5f5f5;
+  border-color: #cccccc;
+  color: #111111;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transform: translateY(-1px);
 }

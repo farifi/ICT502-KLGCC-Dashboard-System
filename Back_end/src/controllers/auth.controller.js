@@ -20,7 +20,7 @@ exports.signup = async (req, res) => {
 
         conn = await getConnection(); 
 
-        const isStaff = email.endsWith('@klgcc.com');
+        const isStaff = email.endsWith('@nikaFleet.com');
 
         if (isStaff) {
             const existing = await conn.execute(
