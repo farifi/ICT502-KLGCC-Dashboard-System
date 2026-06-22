@@ -27,7 +27,15 @@ const EditPaymentForm = ({ payment, onCancel, onSave }) => {
       <label>Amount<input type="number" step="0.01" name="PAYMENTAMOUNT" value={formData.PAYMENTAMOUNT} onChange={handleChange} required /></label>
       <label>Method<input name="PAYMENTMETHOD" value={formData.PAYMENTMETHOD} onChange={handleChange} required /></label>
       <label>Date<input type="date" name="PAYMENTDATE" value={formData.PAYMENTDATE} onChange={handleChange} required /></label>
-      <label>Status<input name="PAYMENTSTATUS" value={formData.PAYMENTSTATUS} onChange={handleChange} required /></label>
+      <label>Status
+        <select name="PAYMENTSTATUS" value={formData.PAYMENTSTATUS} onChange={handleChange} required>
+          <option value="">-- Select Status --</option>
+          <option value="Pending">Pending</option>
+          <option value="Completed">Completed</option>
+          <option value="Failed">Failed</option>
+          <option value="Refunded">Refunded</option>
+        </select>
+      </label>
       <div className="modal-actions">
         <button type="button" onClick={onCancel}>Cancel</button>
         <button type="submit">Save Changes</button>
