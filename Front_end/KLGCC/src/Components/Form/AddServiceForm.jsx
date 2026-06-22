@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import API from "../../Api";
 
 const AddServiceForm = ({ onCancel, onCreate }) => {
   const [formData, setFormData] = useState({
@@ -9,6 +10,19 @@ const AddServiceForm = ({ onCancel, onCreate }) => {
     STAFFID: "",
     SERVICENEXTDATE: ""
   });
+
+  const [cars, setCars] = useState([]);
+  const [staffList, setStaffList] = useState([]);
+
+  useEffect(() => {
+    API.get("/api/car/carList", { params: { limit: 1000 } })
+      .then(res => setCars(res.data.cars || []))
+      .catch(console.error);
+
+    API.get("/api/staff/staffList")
+      .then(res => setStaffList(res.data.staffs || []))
+      .catch(console.error);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,14 +43,15 @@ const AddServiceForm = ({ onCancel, onCreate }) => {
 
   return (
     <form className="edit-staff-form" onSubmit={handleSubmit}>
-      <label>Car ID
-        <input
-          type="number"
-          name="CARID"
-          value={formData.CARID}
-          onChange={handleChange}
-          required
-        />
+      <label>Car
+        <select name="CARID" value={formData.CARID} onChange={handleChange} required>
+          <option value="">-- Select Car --</option>
+          {cars.map(car => (
+            <option key={car.CARID} value={car.CARID}>
+              {car.CARID} — {car.CARBRAND} {car.CARMODEL} ({car.CARPLATENO})
+            </option>
+          ))}
+        </select>
       </label>
 
       <label>Service Date
@@ -68,13 +83,15 @@ const AddServiceForm = ({ onCancel, onCreate }) => {
         />
       </label>
 
-      <label>Staff ID
-        <input
-          type="number"
-          name="STAFFID"
-          value={formData.STAFFID}
-          onChange={handleChange}
-        />
+      <label>Staff
+        <select name="STAFFID" value={formData.STAFFID} onChange={handleChange}>
+          <option value="">-- Select Staff (optional) --</option>
+          {staffList.map(staff => (
+            <option key={staff.STAFFID} value={staff.STAFFID}>
+              {staff.STAFFID} — {staff.STAFFNAME}
+            </option>
+          ))}
+        </select>
       </label>
 
       <label>Next Service Date
