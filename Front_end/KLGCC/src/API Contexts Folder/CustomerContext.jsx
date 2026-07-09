@@ -22,7 +22,7 @@ export const CustomerProvider = ({ children }) => {
       setCustomers(res.data.customers || []);
       setTotalPages(res.data.totalPages || 1);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to fetch customers");
+      alert(err.response?.data?.error || err.response?.data?.message || "Failed to fetch customers");
     }
   };
 
@@ -30,7 +30,8 @@ export const CustomerProvider = ({ children }) => {
     try {
       await API.post("/api/customer/add", data);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to create customer");
+      console.error("Create customer error:", err.response?.data);
+      alert(err.response?.data?.error || err.response?.data?.message || "Failed to create customer");
     }
   };
 
@@ -39,7 +40,8 @@ export const CustomerProvider = ({ children }) => {
       // data.CUSTID comes from the selected row (raw Oracle column key)
       await API.put(`/api/customer/${data.CUSTID}`, data);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to update customer");
+      console.error("Update customer error:", err.response?.data);
+      alert(err.response?.data?.error || err.response?.data?.message || "Failed to update customer");
     }
   };
 
@@ -47,7 +49,8 @@ export const CustomerProvider = ({ children }) => {
     try {
       await API.delete(`/api/customer/${id}`);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete customer");
+      console.error("Delete customer error:", err.response?.data);
+      alert(err.response?.data?.error || err.response?.data?.message || "Failed to delete customer");
     }
   };
 

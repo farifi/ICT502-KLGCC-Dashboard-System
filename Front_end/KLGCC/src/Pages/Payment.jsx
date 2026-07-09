@@ -82,19 +82,40 @@ const Payment = () => {
     setIsEditOpen(true);
   };
 
-  // NOTE: status comparisons are now case-insensitive.
-  // Previously this checked exact strings like "Pending" / "Failed",
-  // which silently returned an empty list if the DB actually stores
-  // "PENDING" / "FAILED" (or any other casing).
+  // Status groups.
+  // NOTE: comparisons are case-insensitive AND now include "PAID" as a
+  // completed status, since the DB stores "Paid" (not "Completed") for
+  // successful payments. Previously "Paid" matched neither group, so
+  // those rows silently disappeared from both tables.
+  const PENDING_FAILED_STATUSES = ["PENDING", "FAILED"];
+  const COMPLETED_REFUNDED_STATUSES = ["COMPLETED", "REFUNDED", "PAID"];
+
   const pendingFailedList = paymentList.filter((p) => {
     const status = (p.PAYMENTSTATUS || "").toUpperCase();
-    return status === "PENDING" || status === "FAILED";
+    return PENDING_FAILED_STATUSES.includes(status);
   });
 
   const completedRefundedList = paymentList.filter((p) => {
     const status = (p.PAYMENTSTATUS || "").toUpperCase();
-    return status === "COMPLETED" || status === "REFUNDED";
+    return COMPLETED_REFUNDED_STATUSES.includes(status);
   });
+
+  // Safety net: catch any status that doesn't match either group so rows
+  // never silently vanish again. Check your browser console if a row you
+  // expect to see is missing from both tables above.
+  useEffect(() => {
+    const known = [...PENDING_FAILED_STATUSES, ...COMPLETED_REFUNDED_STATUSES];
+    const unmatched = paymentList.filter((p) => {
+      const status = (p.PAYMENTSTATUS || "").toUpperCase();
+      return !known.includes(status);
+    });
+    if (unmatched.length > 0) {
+      console.warn(
+        "Payment rows with unrecognized PAYMENTSTATUS (not shown in either table):",
+        unmatched
+      );
+    }
+  }, [paymentList]);
 
   const paymentColumns = [
     { header: "ID", key: "PAYMENTID" },

@@ -1,42 +1,66 @@
 import { useState, useEffect } from "react";
+import API from "../../Api";
 
 const EditServiceForm = ({ service, onCancel, onSave }) => {
+  const [cars, setCars] = useState([]);
+  const [staffList, setStaffList] = useState([]);
+
   const [formData, setFormData] = useState({
     CARID: "",
     SERVICEDATE: "",
     SERVICEDESCRIPTION: "",
     SERVICECOST: "",
     STAFFID: "",
-    SERVICENEXTDATE: ""
+    SERVICENEXTDATE: "",
   });
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        const carRes = await API.get("/api/car/carList", {
+          params: { limit: 1000 },
+        });
+
+        setCars(carRes.data.cars || []);
+
+        const staffRes = await API.get("/api/staff/staffList");
+        setStaffList(staffRes.data.staffs || []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  useEffect(() => {
     if (service) {
-      // Format dates to yyyy-MM-dd for date input
-      const formatDate = (val) => {
-        if (!val) return "";
-        const d = new Date(val);
-        return isNaN(d) ? "" : d.toISOString().split("T")[0];
+      const formatDate = (date) => {
+        if (!date) return "";
+        return new Date(date).toISOString().split("T")[0];
       };
 
       setFormData({
-        CARID: service.CARID ?? "",
+        CARID: service.CARID || "",
         SERVICEDATE: formatDate(service.SERVICEDATE),
-        SERVICEDESCRIPTION: service.SERVICEDESCRIPTION ?? "",
-        SERVICECOST: service.SERVICECOST ?? "",
-        STAFFID: service.STAFFID ?? "",
-        SERVICENEXTDATE: formatDate(service.SERVICENEXTDATE)
+        SERVICEDESCRIPTION: service.SERVICEDESCRIPTION || "",
+        SERVICECOST: service.SERVICECOST || "",
+        STAFFID: service.STAFFID || "",
+        SERVICENEXTDATE: formatDate(service.SERVICENEXTDATE),
       });
     }
   }, [service]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     onSave({
       ...service,
       CARID: Number(formData.CARID),
@@ -44,23 +68,32 @@ const EditServiceForm = ({ service, onCancel, onSave }) => {
       SERVICEDESCRIPTION: formData.SERVICEDESCRIPTION,
       SERVICECOST: Number(formData.SERVICECOST),
       STAFFID: formData.STAFFID ? Number(formData.STAFFID) : null,
-      SERVICENEXTDATE: formData.SERVICENEXTDATE || null
+      SERVICENEXTDATE: formData.SERVICENEXTDATE || null,
     });
   };
 
   return (
     <form className="edit-staff-form" onSubmit={handleSubmit}>
-      <label>Car ID
-        <input
-          type="number"
+      <label>
+        Car
+        <select
           name="CARID"
           value={formData.CARID}
           onChange={handleChange}
           required
-        />
+        >
+          <option value="">-- Select Car --</option>
+
+          {cars.map((car) => (
+            <option key={car.CARID} value={car.CARID}>
+              {car.CARBRAND} {car.CARMODEL} ({car.CARPLATENO})
+            </option>
+          ))}
+        </select>
       </label>
 
-      <label>Service Date
+      <label>
+        Service Date
         <input
           type="date"
           name="SERVICEDATE"
@@ -69,16 +102,18 @@ const EditServiceForm = ({ service, onCancel, onSave }) => {
         />
       </label>
 
-      <label>Description
+      <label>
+        Description
         <textarea
           name="SERVICEDESCRIPTION"
           value={formData.SERVICEDESCRIPTION}
           onChange={handleChange}
-          rows={3}
+          rows="3"
         />
       </label>
 
-      <label>Service Cost (RM)
+      <label>
+        Service Cost (RM)
         <input
           type="number"
           step="0.01"
@@ -89,16 +124,25 @@ const EditServiceForm = ({ service, onCancel, onSave }) => {
         />
       </label>
 
-      <label>Staff ID
-        <input
-          type="number"
+      <label>
+        Staff
+        <select
           name="STAFFID"
           value={formData.STAFFID}
           onChange={handleChange}
-        />
+        >
+          <option value="">-- Select Staff --</option>
+
+          {staffList.map((staff) => (
+            <option key={staff.STAFFID} value={staff.STAFFID}>
+              {staff.STAFFNAME}
+            </option>
+          ))}
+        </select>
       </label>
 
-      <label>Next Service Date
+      <label>
+        Next Service Date
         <input
           type="date"
           name="SERVICENEXTDATE"
@@ -108,8 +152,13 @@ const EditServiceForm = ({ service, onCancel, onSave }) => {
       </label>
 
       <div className="modal-actions">
-        <button type="button" onClick={onCancel}>Cancel</button>
-        <button type="submit">Save</button>
+        <button type="button" onClick={onCancel}>
+          Cancel
+        </button>
+
+        <button type="submit">
+          Save
+        </button>
       </div>
     </form>
   );

@@ -151,14 +151,20 @@ exports.createCustomer = async (req, res) => {
 
         const passwordHash = await bcrypt.hash(CUSTPASSWORD, 10);
 
+        // CUSTUSERNAME is NOT NULL in the DB but there's no username field
+        // anywhere in the UI, so we derive one from the email (the part
+        // before the @), which is already guaranteed unique by the check above.
+        const generatedUsername = CUSTEMAIL.split('@')[0];
+
         const result = await conn.execute(
             `INSERT INTO CUSTOMER
-                (CUSTID, CUSTNAME, CUSTEMAIL, CUSTPHONENUM, CUSTIC, CUSTLICENSENO, CUSTADDRESS, CUSTPASSWORD)
+                (CUSTID, CUSTNAME, CUSTUSERNAME, CUSTEMAIL, CUSTPHONENUM, CUSTIC, CUSTLICENSENO, CUSTADDRESS, CUSTPASSWORD)
              VALUES
-                (CUSTOMER_SEQ.NEXTVAL, :name, :email, :phone, :ic, :licenseNo, :address, :password)
+                (CUSTOMER_SEQ.NEXTVAL, :name, :username, :email, :phone, :ic, :licenseNo, :address, :password)
              RETURNING CUSTID INTO :id`,
             {
                 name:      CUSTNAME,
+                username:  generatedUsername,
                 email:     CUSTEMAIL,
                 phone:     CUSTPHONENUM  || null,
                 ic:        CUSTIC        || null,
@@ -213,7 +219,7 @@ exports.updateCustomer = async (req, res) => {
                 CUSTPHONENUM  = :phone,
                 CUSTIC        = :ic,
                 CUSTLICENSENO = :licenseNo,
-                CUSTADDRESS   = :address,
+                CUSTADDRESS   = :address
              WHERE CUSTID = :id`,
             {
                 name:      CUSTNAME,

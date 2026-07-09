@@ -79,7 +79,7 @@ const Rental = () => {
   const columns = [
     { header: "ID",          key: "RENTALID" },
     { header: "Customer",    key: "CUSTOMER_NAME" },
-    { header: "Car ID",      key: "CARID" },
+    { header: "Car Plate No",      key: "CAR_PLATENO" },
     { header: "Pickup Date", key: "RENTALPICKUPDATE" },
     { header: "Return Date", key: "RENTALRETURNDATE" },
     { header: "Total (RM)",  key: "RENTALTOTALCOST", render: (r) => r.RENTALTOTALCOST ? `RM ${Number(r.RENTALTOTALCOST).toFixed(2)}` : "-" },

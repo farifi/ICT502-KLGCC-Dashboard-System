@@ -109,7 +109,7 @@ exports.login = async (req, res) => {
 
         conn = await getConnection();
 
-        const isStaff = email.endsWith('@klgcc.com');
+        const isStaff = email.endsWith('@nikaFleet.com');
         let result;
 
         if (isStaff) {

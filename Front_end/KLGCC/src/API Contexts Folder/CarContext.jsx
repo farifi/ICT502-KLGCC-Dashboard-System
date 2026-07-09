@@ -36,7 +36,7 @@ export const CarProvider = ({ children }) => {
       await fetchCarList(1);
       return { success: true };
     } catch (err) {
-      const errorMsg = err.response?.data?.message || "Failed to create car";
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || "Failed to create car";
       console.error("Add API error:", err.response?.data);
       alert(errorMsg);
       return { success: false, message: errorMsg };
@@ -53,7 +53,7 @@ export const CarProvider = ({ children }) => {
       await fetchCarList(currentPage);
       return { success: true };
     } catch (err) {
-      const errorMsg = err.response?.data?.message || "Update failed";
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || "Update failed";
       console.error("Update API error:", err.response?.data);
       alert(errorMsg);
       return { success: false, message: errorMsg };
@@ -73,9 +73,9 @@ export const CarProvider = ({ children }) => {
       await fetchCarList(nextPage);
       return { success: true };
     } catch (err) {
-      const errorMsg = err.response?.data?.message || "Delete failed";
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || "Delete failed";
       console.error("Delete API error:", err.response?.data);
-      alert("Could not delete car. It might be linked to existing records.");
+      alert(errorMsg);
       return { success: false, message: errorMsg };
     }
   };

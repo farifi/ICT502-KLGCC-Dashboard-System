@@ -1,30 +1,87 @@
 import React from "react";
-import { PieChart, Pie, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  Legend,
+} from "recharts";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-const PieChartComp = ({ data, nameKey, valueKey, title, colors = COLORS, description }) => (
-  <div style={{ width: "100%", height: 300, display: 'flex', flexDirection: 'column' }}>
-    <h3 style={{ marginBottom: 12 }}>{title}</h3>
-    <div className="chart-wrapper">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={data}
-            nameKey={nameKey}
-            dataKey={valueKey}
-            label
+const PieChartComp = ({
+  data,
+  nameKey,
+  valueKey,
+  title,
+  colors = COLORS,
+  description,
+}) => {
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: 400,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <h3 style={{ marginBottom: 15 }}>{title}</h3>
+
+      <div style={{ flex: 1 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey={valueKey}
+              nameKey={nameKey}
+              cx="35%"
+              cy="50%"
+              outerRadius={85}
+              label
             >
-            {data.map((_, index) => (
-              <Cell key={index} fill={colors[index % colors.length]} />
-            ))}
-          </Pie>
-          <Tooltip />
-        </PieChart>
-      </ResponsiveContainer>
+              {data.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={colors[index % colors.length]}
+                />
+              ))}
+            </Pie>
+
+            <Tooltip />
+
+            <Legend
+              layout="vertical"
+              align="right"
+              verticalAlign="middle"
+              iconType="square"
+              iconSize={12}
+              width={120}
+              wrapperStyle={{
+                paddingLeft: "20px",
+                fontSize: "14px",
+                lineHeight: "22px",
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+
+      {description && (
+        <p
+          style={{
+            textAlign: "center",
+            color: "#888",
+            marginTop: 10,
+            fontSize: 14,
+          }}
+        >
+          {description}
+        </p>
+      )}
     </div>
-    {description && <p className="chart-description" style={{ marginTop: 8 }}>{description}</p>}
-  </div> 
-);
+  );
+};
 
 export default PieChartComp;

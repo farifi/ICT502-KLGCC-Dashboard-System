@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useCustomer } from "../../API Contexts Folder/CustomerContext.jsx";
 import { useStaff } from "../../API Contexts Folder/StaffContext.jsx";
+import { usePayment } from "../../API Contexts Folder/PaymentContext.jsx";
 import API from "../../Api.jsx";
 
 const RENTAL_STATUS_OPTIONS = ["Active", "Completed", "Cancelled", "Pending"];
@@ -14,6 +15,9 @@ const customerLabel = (c) =>
 const staffLabel = (s) => s.STAFFNAME || s.NAME || `Staff #${s.STAFFID}`;
 
 const carLabel = (c) => `${c.CARPLATENO} — ${c.CARBRAND} ${c.CARMODEL}`;
+
+const paymentLabel = (p) =>
+  `#${p.PAYMENTID} — RM ${Number(p.PAYMENTAMOUNT).toFixed(2)} (${p.PAYMENTMETHOD || "N/A"})`;
 
 const AddRentalForm = ({ onCancel, onCreate }) => {
   const [form, setForm] = useState({
@@ -32,6 +36,7 @@ const AddRentalForm = ({ onCancel, onCreate }) => {
 
   const { customers, fetchCustomers } = useCustomer();
   const { staffList, fetchStaffList } = useStaff();
+  const { paymentList, fetchPaymentList } = usePayment();
   const [availableCars, setAvailableCars] = useState([]);
 
   useEffect(() => {
@@ -39,6 +44,10 @@ const AddRentalForm = ({ onCancel, onCreate }) => {
     // rather than just one paginated page of 5.
     fetchCustomers(1, () => {}, 1000);
     fetchStaffList();
+
+    // Same idea for payments — pull a large batch so the dropdown
+    // shows every payment record instead of just one page of 5.
+    fetchPaymentList(1, 1000);
 
     // ASSUMPTION: only cars with status "Available" can be assigned to
     // a new rental. Remove the status param below if you want every car
@@ -86,8 +95,13 @@ const AddRentalForm = ({ onCancel, onCreate }) => {
         </select>
       </label>
 
-      <label>Payment ID
-        <input type="number" name="PAYMENTID" value={form.PAYMENTID} onChange={handleChange} />
+      <label>Payment
+        <select name="PAYMENTID" value={form.PAYMENTID} onChange={handleChange}>
+          <option value="">-- Select Payment (optional) --</option>
+          {paymentList.map((p) => (
+            <option key={p.PAYMENTID} value={p.PAYMENTID}>{paymentLabel(p)}</option>
+          ))}
+        </select>
       </label>
 
       <label>Pickup Date

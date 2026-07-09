@@ -26,7 +26,7 @@ exports.getRentalWithDetails = async (req, res) => {
           r.STAFFID,
 
           cu.CUSTNAME AS CUSTOMER_NAME,
-          ca.CARPLATENO AS CAR_NUMBER
+          ca.CARPLATENO AS CAR_PLATENO
 
       FROM RENTAL r
 
@@ -67,6 +67,7 @@ exports.getRentalWithDetails = async (req, res) => {
   }
 };
 
+// CREATE RENTAL
 exports.createRental = async (req, res) => {
   const {
     PAYMENTID, CUSTID, CARID,
@@ -81,11 +82,11 @@ exports.createRental = async (req, res) => {
     conn = await getConnection();
     await conn.execute(
       `INSERT INTO RENTAL 
-         (PAYMENTID, CUSTID, CARID, RENTALPICKUPDATE, RENTALRETURNDATE,
+         (RENTALID, PAYMENTID, CUSTID, CARID, RENTALPICKUPDATE, RENTALRETURNDATE,
           RENTALPICKUPTIME, RENTALRETURNTIME, RENTALADDRESS, RENTALTOTALCOST,
           RENTALSTATUS, STAFFID)
        VALUES 
-         (:paymentid, :custid, :carid, :pickupdate, :returndate,
+         (RENTAL_SEQ.NEXTVAL, :paymentid, :custid, :carid, :pickupdate, :returndate,
           :pickuptime, :returntime, :address, :totalcost,
           :status, :staffid)`,
       {
@@ -111,6 +112,7 @@ exports.createRental = async (req, res) => {
   }
 };
 
+// UPDATE RENTAL
 exports.updateRental = async (req, res) => {
   const { id } = req.params;
   const {
@@ -162,6 +164,7 @@ exports.updateRental = async (req, res) => {
   }
 };
 
+// DELETE RENTAL
 exports.deleteRental = async (req, res) => {
   const { id } = req.params;
   let conn;

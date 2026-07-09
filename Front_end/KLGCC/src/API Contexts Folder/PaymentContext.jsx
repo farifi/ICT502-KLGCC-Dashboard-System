@@ -9,11 +9,15 @@ export const PaymentProvider = ({ children }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // 1. GET - Fetch payments with pagination
-  const fetchPaymentList = useCallback(async (page = 1) => {
+  // 1. GET - Fetch payments with pagination.
+  // NOTE: added an optional `limit` param (defaults to 5, same as before).
+  // Existing calls like fetchPaymentList(page) still work unchanged.
+  // Pass a larger limit (e.g. fetchPaymentList(1, 1000)) when you need
+  // "all payments" for a dropdown instead of a paginated page.
+  const fetchPaymentList = useCallback(async (page = 1, limit = 5) => {
     setLoading(true);
     try {
-      const res = await API.get(`/api/payment/list?page=${page}&limit=5`);
+      const res = await API.get(`/api/payment/list?page=${page}&limit=${limit}`);
       setPaymentList(res.data.payments || []);
       setTotalPages(res.data.totalPages || 1);
       setCurrentPage(page);
@@ -33,7 +37,7 @@ export const PaymentProvider = ({ children }) => {
       await fetchPaymentList(1);
       return { success: true };
     } catch (err) {
-      const errorMsg = err.response?.data?.message || "Failed to create payment";
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || "Failed to create payment";
       console.error("Add API error:", err.response?.data);
       alert(errorMsg);
       return { success: false, message: errorMsg };
@@ -70,9 +74,10 @@ export const PaymentProvider = ({ children }) => {
       await fetchPaymentList(nextPage);
       return { success: true };
     } catch (err) {
-      console.error("Delete failed:", err);
-      alert("Could not delete payment. It might be linked to existing records.");
-      return { success: false };
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || "Delete failed";
+      console.error("Delete API error:", err.response?.data);
+      alert(errorMsg);
+      return { success: false, message: errorMsg };
     }
   };
 

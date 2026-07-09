@@ -22,7 +22,8 @@ export const ServiceProvider = ({ children }) => {
       await API.post("/api/service", service);
       await fetchServiceList(1);
     } catch (err) {
-      alert("Error: Check if the Car ID or Staff ID exists.");
+      console.error("Create service error:", err.response?.data);
+      alert(err.response?.data?.error || err.response?.data?.message || "Failed to create service");
     }
   };
 
@@ -31,7 +32,8 @@ export const ServiceProvider = ({ children }) => {
       await API.put(`/api/service/${service.SERVICEID}`, service);
       await fetchServiceList();
     } catch (err) {
-      alert("Failed to update service");
+      console.error("Update service error:", err.response?.data);
+      alert(err.response?.data?.error || err.response?.data?.message || "Failed to update service");
     }
   };
 
@@ -40,7 +42,8 @@ export const ServiceProvider = ({ children }) => {
       await API.delete(`/api/service/${id}`);
       await fetchServiceList();
     } catch (err) {
-      alert("Failed to delete service");
+      console.error("Delete service error:", err.response?.data);
+      alert(err.response?.data?.error || err.response?.data?.message || "Failed to delete service");
     }
   };
 

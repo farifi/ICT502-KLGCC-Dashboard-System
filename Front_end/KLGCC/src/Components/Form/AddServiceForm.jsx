@@ -8,53 +8,73 @@ const AddServiceForm = ({ onCancel, onCreate }) => {
     SERVICEDESCRIPTION: "",
     SERVICECOST: "",
     STAFFID: "",
-    SERVICENEXTDATE: ""
+    SERVICENEXTDATE: "",
   });
 
   const [cars, setCars] = useState([]);
   const [staffList, setStaffList] = useState([]);
 
   useEffect(() => {
-    API.get("/api/car/carList", { params: { limit: 1000 } })
-      .then(res => setCars(res.data.cars || []))
-      .catch(console.error);
+    const loadData = async () => {
+      try {
+        const carRes = await API.get("/api/car/carList", {
+          params: { limit: 1000 },
+        });
 
-    API.get("/api/staff/staffList")
-      .then(res => setStaffList(res.data.staffs || []))
-      .catch(console.error);
+        setCars(carRes.data.cars || []);
+
+        const staffRes = await API.get("/api/staff/staffList");
+        setStaffList(staffRes.data.staffs || []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    loadData();
   }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     onCreate({
       CARID: Number(formData.CARID),
       SERVICEDATE: formData.SERVICEDATE || null,
       SERVICEDESCRIPTION: formData.SERVICEDESCRIPTION,
       SERVICECOST: Number(formData.SERVICECOST),
       STAFFID: formData.STAFFID ? Number(formData.STAFFID) : null,
-      SERVICENEXTDATE: formData.SERVICENEXTDATE || null
+      SERVICENEXTDATE: formData.SERVICENEXTDATE || null,
     });
   };
 
   return (
     <form className="edit-staff-form" onSubmit={handleSubmit}>
-      <label>Car
-        <select name="CARID" value={formData.CARID} onChange={handleChange} required>
+      <label>
+        Car
+        <select
+          name="CARID"
+          value={formData.CARID}
+          onChange={handleChange}
+          required
+        >
           <option value="">-- Select Car --</option>
-          {cars.map(car => (
+
+          {cars.map((car) => (
             <option key={car.CARID} value={car.CARID}>
-              {car.CARID} — {car.CARBRAND} {car.CARMODEL} ({car.CARPLATENO})
+              {car.CARBRAND} {car.CARMODEL} ({car.CARPLATENO})
             </option>
           ))}
         </select>
       </label>
 
-      <label>Service Date
+      <label>
+        Service Date
         <input
           type="date"
           name="SERVICEDATE"
@@ -63,16 +83,18 @@ const AddServiceForm = ({ onCancel, onCreate }) => {
         />
       </label>
 
-      <label>Description
+      <label>
+        Description
         <textarea
           name="SERVICEDESCRIPTION"
           value={formData.SERVICEDESCRIPTION}
           onChange={handleChange}
-          rows={3}
+          rows="3"
         />
       </label>
 
-      <label>Service Cost (RM)
+      <label>
+        Service Cost (RM)
         <input
           type="number"
           step="0.01"
@@ -83,18 +105,25 @@ const AddServiceForm = ({ onCancel, onCreate }) => {
         />
       </label>
 
-      <label>Staff
-        <select name="STAFFID" value={formData.STAFFID} onChange={handleChange}>
-          <option value="">-- Select Staff (optional) --</option>
-          {staffList.map(staff => (
+      <label>
+        Staff
+        <select
+          name="STAFFID"
+          value={formData.STAFFID}
+          onChange={handleChange}
+        >
+          <option value="">-- Select Staff --</option>
+
+          {staffList.map((staff) => (
             <option key={staff.STAFFID} value={staff.STAFFID}>
-              {staff.STAFFID} — {staff.STAFFNAME}
+              {staff.STAFFNAME}
             </option>
           ))}
         </select>
       </label>
 
-      <label>Next Service Date
+      <label>
+        Next Service Date
         <input
           type="date"
           name="SERVICENEXTDATE"
@@ -104,8 +133,13 @@ const AddServiceForm = ({ onCancel, onCreate }) => {
       </label>
 
       <div className="modal-actions">
-        <button type="button" onClick={onCancel}>Cancel</button>
-        <button type="submit">Add Service</button>
+        <button type="button" onClick={onCancel}>
+          Cancel
+        </button>
+
+        <button type="submit">
+          Add Service
+        </button>
       </div>
     </form>
   );

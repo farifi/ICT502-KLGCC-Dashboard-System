@@ -31,7 +31,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     <div className="pagination">
       {pages.map((p, idx) =>
         p === "..." ? (
-          <span key={idx} className="dots">...</span>
+          <span key={idx} className="dots">
+            ...
+          </span>
         ) : (
           <button
             key={p}
@@ -61,7 +63,7 @@ const Service = () => {
     fetchServiceList,
     updateService,
     deleteService,
-    createService
+    createService,
   } = useService();
 
   useEffect(() => {
@@ -79,21 +81,44 @@ const Service = () => {
     }
   };
 
-  // Helper to format dates for display
-  const formatDate = (val) => {
-    if (!val) return "-";
-    const d = new Date(val);
+  const formatDate = (value) => {
+    if (!value) return "-";
+    const d = new Date(value);
     return isNaN(d) ? "-" : d.toLocaleDateString("en-MY");
   };
 
   const serviceColumns = [
-    { header: "ID",          key: "SERVICEID" },
-    { header: "Car ID",      key: "CARID" },
-    { header: "Staff ID",    key: "STAFFID" },
-    { header: "Date",        key: "SERVICEDATE",     render: (row) => formatDate(row.SERVICEDATE) },
-    { header: "Description", key: "SERVICEDESCRIPTION" },
-    { header: "Cost (RM)",   key: "SERVICECOST",     render: (row) => `RM ${Number(row.SERVICECOST).toFixed(2)}` },
-    { header: "Next Date",   key: "SERVICENEXTDATE", render: (row) => formatDate(row.SERVICENEXTDATE) },
+    {
+      header: "ID",
+      key: "SERVICEID",
+    },
+    {
+      header: "Car Model",
+      key: "CARMODEL",
+    },
+    {
+      header: "Staff Name",
+      key: "STAFFNAME",
+    },
+    {
+      header: "Date",
+      key: "SERVICEDATE",
+      render: (row) => formatDate(row.SERVICEDATE),
+    },
+    {
+      header: "Description",
+      key: "SERVICEDESCRIPTION",
+    },
+    {
+      header: "Cost (RM)",
+      key: "SERVICECOST",
+      render: (row) => `RM ${Number(row.SERVICECOST).toFixed(2)}`,
+    },
+    {
+      header: "Next Date",
+      key: "SERVICENEXTDATE",
+      render: (row) => formatDate(row.SERVICENEXTDATE),
+    },
     {
       header: "Actions",
       key: "actions",
@@ -107,6 +132,7 @@ const Service = () => {
           >
             ✏️
           </button>
+
           <button
             className="delete"
             onClick={() => handleDelete(row.SERVICEID)}
@@ -114,8 +140,8 @@ const Service = () => {
             🗑
           </button>
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   return (
@@ -126,16 +152,22 @@ const Service = () => {
         </div>
 
         <div className="default-main">
-          <Header toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+          <Header
+            toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          />
 
           <div className="table-header">
-            <button className="add-btn" onClick={() => setIsAddOpen(true)}>
+            <button
+              className="add-btn"
+              onClick={() => setIsAddOpen(true)}
+            >
               + Add Service
             </button>
           </div>
 
           <div className="default-content">
             <h2>Service Management</h2>
+
             <Table
               columns={serviceColumns}
               data={serviceList}
@@ -152,7 +184,7 @@ const Service = () => {
         </div>
       </div>
 
-      {/* Modal for Adding Service */}
+      {/* Add Service */}
       <Modal
         isOpen={isAddOpen}
         title="Add New Service"
@@ -168,7 +200,7 @@ const Service = () => {
         />
       </Modal>
 
-      {/* Modal for Editing Service */}
+      {/* Edit Service */}
       <Modal
         isOpen={isEditOpen}
         title="Edit Service"
